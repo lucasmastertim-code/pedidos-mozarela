@@ -44,6 +44,14 @@
             <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
           </div>
         </div>
+
+        <!-- BUSCAR CLIENTE CADASTRADO -->
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
+          <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
+          <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="">Selecione um cliente do histórico...</option>
+          </select>
+        </div>
   
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -201,6 +209,7 @@
         todosPedidos.push({ id: doc.id, ...doc.data() });
       });
       atualizarInterface();
+      atualizarSelectClientes();
     });
 
     onSnapshot(doc(db, "configuracao_mucarela", "fechamento"), (docSnap) => {
@@ -230,6 +239,49 @@
         document.getElementById('infoUltimoFechamento').innerText = "Último fechamento: Nenhum realizado ainda";
       }
     }
+
+    // POPULAR O SELECT DE CLIENTES COM BASE NO HISTÓRICO
+    function atualizarSelectClientes() {
+      const select = document.getElementById('selectClienteSalvo');
+      // Mantém a primeira opção
+      select.innerHTML = '<option value="">Selecione um cliente do histórico...</option>';
+
+      // Filtra clientes únicos pelo CNPJ ou Razão Social
+      const clientesUnicos = {};
+      todosPedidos.forEach(p => {
+        if (p.razao) {
+          clientesUnicos[p.razao] = p; // Guarda o último registro do cliente
+        }
+      });
+
+      Object.values(clientesUnicos).forEach(cliente => {
+        const opt = document.createElement('option');
+        opt.value = cliente.razao;
+        opt.textContent = `${cliente.razao} (${cliente.fantasia || ''})`;
+        // Guarda os dados no elemento para recuperar depois
+        opt.dataset.fantasia = cliente.fantasia || '';
+        opt.dataset.cnpj = cliente.cnpj || '';
+        opt.dataset.contato = cliente.contato || '';
+        opt.dataset.endereco = cliente.endereco || '';
+        opt.dataset.pgto = cliente.pgto || '';
+        opt.dataset.nf = cliente.nf || 'Com NF.';
+        select.appendChild(opt);
+      });
+    }
+
+    // AO SELECIONAR UM CLIENTE SALVO, PREENCHE AUTOMATICAMENTE
+    document.getElementById('selectClienteSalvo').addEventListener('change', (e) => {
+      const opt = e.target.selectedOptions[0];
+      if (!opt || !opt.value) return;
+
+      document.getElementById('razao').value = opt.value;
+      document.getElementById('fantasia').value = opt.dataset.fantasia;
+      document.getElementById('cnpj').value = opt.dataset.cnpj;
+      document.getElementById('contato').value = opt.dataset.contato;
+      document.getElementById('endereco').value = opt.dataset.endereco;
+      document.getElementById('pgto').value = opt.dataset.pgto;
+      document.getElementById('nf').value = opt.dataset.nf;
+    });
 
     function calcularDadosAtuais() {
       const tipo = document.getElementById('tipoEmbalagem').value;
