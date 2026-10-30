@@ -462,6 +462,27 @@
       document.getElementById(id).addEventListener('change', atualizarTelaCalculo);
     });
 
+    // FUNÇÃO PARA LIMPAR O FORMULÁRIO APÓS SALVAR
+    function limparFormulario() {
+      document.getElementById('editandoId').value = '';
+      document.getElementById('isLucas').checked = false;
+      document.getElementById('selectClienteSalvo.value') = '';
+      document.getElementById('razao').value = '';
+      document.getElementById('fantasia').value = '';
+      document.getElementById('cnpj').value = '';
+      document.getElementById('contato').value = '';
+      document.getElementById('endereco').value = '';
+      document.getElementById('dataEntrega').value = '';
+      document.getElementById('horarioEntrega').value = '';
+      document.getElementById('pgto').value = '';
+      document.getElementById('nf').value = 'Com NF.';
+      document.getElementById('tipoVenda').value = 'Venda Normal';
+      document.getElementById('tipoEmbalagem').value = 'pecas';
+      document.getElementById('qtdPecas').value = '5';
+      document.getElementById('precoPraticado').value = '34.00';
+      atualizarTelaCalculo();
+    }
+
     window.copiarPedidoZap = function(id) {
       const p = todosPedidos.find(item => item.id === id);
       if (!p) return;
@@ -585,7 +606,7 @@
       document.getElementById(id).addEventListener('change', renderizarHistorico);
     });
 
-    // SALVAR OU ATUALIZAR NA NUVEM E COPIAR
+    // SALVAR OU ATUALIZAR NA NUVEM E LIMPAR FORMULÁRIO
     document.getElementById('btnSalvarECopiar').addEventListener('click', async () => {
       const editandoId = document.getElementById('editandoId').value;
       const isLucas = document.getElementById('isLucas').checked;
@@ -648,12 +669,14 @@
 
         if (editandoId) {
           await updateDoc(doc(db, "pedidos_mucarela", editandoId), dadosPedido);
-          document.getElementById('editandoId').value = '';
-          alert('Pedido atualizado na nuvem e texto copiado para o WhatsApp!');
+          alert('✅ Pedido atualizado na nuvem, texto copiado para o WhatsApp e formulário limpo!');
         } else {
           await addDoc(collection(db, "pedidos_mucarela"), dadosPedido);
-          alert('Pedido salvo na nuvem e texto copiado para o WhatsApp!');
+          alert('✅ Pedido salvo na nuvem, texto copiado para o WhatsApp e formulário limpo!');
         }
+
+        // Zera e limpa os campos para o próximo pedido
+        limparFormulario();
       } catch (e) {
         console.error("Erro ao salvar: ", e);
         alert('Erro ao salvar no banco de dados.');
