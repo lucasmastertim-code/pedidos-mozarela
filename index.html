@@ -35,233 +35,237 @@
         </div>
       </div>
     </header>
-  
-    <!-- LEITOR DE MENSAGENS DO WHATSAPP -->
-    <section class="bg-white border border-amber-200 p-5 rounded-2xl shadow space-y-3">
-      <h2 class="text-base font-bold text-amber-900 flex items-center gap-2">
-        <span>📋</span> Colar Mensagem do WhatsApp
-      </h2>
-      <textarea id="textoWhatsapp" rows="3" class="w-full border rounded-xl p-3 text-sm font-mono outline-none bg-slate-50" placeholder="Cole aqui o texto do pedido enviado no grupo..."></textarea>
-      <button id="btnProcessarZap" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-xl shadow transition">
-        ⚡ Preencher Formulário Automático
+
+    <!-- MENU DE ABAS (Navegação igual Top Fish) -->
+    <div class="flex gap-2 border-b pb-2">
+      <button id="btnAbaNovo" onclick="mudarAba('novo')" class="bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
+        ➕ Novo Pedido & Fechamento
       </button>
-    </section>
+      <button id="btnAbaHistorico" onclick="mudarAba('historico')" class="bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200">
+        📜 Histórico de Pedidos
+      </button>
+    </div>
   
-    <!-- FORMULÁRIO -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- DADOS DO CLIENTE E ENTREGA -->
-      <section class="bg-white p-6 rounded-2xl shadow space-y-4">
-        <div class="flex justify-between items-center border-b pb-2">
-          <h2 class="text-lg font-bold text-gray-800">1. Dados do Cliente & Entrega</h2>
-          <div class="flex items-center gap-2 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-            <input type="checkbox" id="isLucas" class="w-4 h-4 text-amber-600 rounded">
-            <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
+    <!-- CONTEÚDO DA ABA: NOVO PEDIDO & FECHAMENTO -->
+    <div id="conteudoNovo" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- DADOS DO CLIENTE E ENTREGA -->
+        <section class="bg-white p-6 rounded-2xl shadow space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-lg font-bold text-gray-800">1. Dados do Cliente & Entrega</h2>
+            <div class="flex items-center gap-2 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+              <input type="checkbox" id="isLucas" class="w-4 h-4 text-amber-600 rounded">
+              <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
+            </div>
           </div>
-        </div>
 
-        <!-- ID OCULTO PARA EDIÇÃO -->
-        <input type="hidden" id="editandoId" value="" />
+          <!-- ID OCULTO PARA EDIÇÃO -->
+          <input type="hidden" id="editandoId" value="" />
 
-        <!-- BUSCAR CLIENTE CADASTRADO -->
-        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
-          <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
-          <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
-            <option value="">Selecione um cliente do histórico...</option>
-          </select>
-        </div>
-  
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Razão Social / Cliente</label>
-            <input id="razao" type="text" placeholder="Ex: Pizzaria Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Fantasia</label>
-            <input id="fantasia" type="text" placeholder="Ex: Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none" />
-          </div>
-        </div>
-  
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">CNPJ</label>
-            <input id="cnpj" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Contato/Tel</label>
-            <input id="contato" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
-          </div>
-        </div>
-  
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Endereço Completo</label>
-          <input id="endereco" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
-        </div>
-
-        <!-- CAMPOS DE ENTREGA -->
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-amber-900 mb-1">📅 Dia da Entrega</label>
-            <input id="dataEntrega" type="date" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-amber-900 mb-1">⏰ Horário de Entrega</label>
-            <input id="horarioEntrega" type="text" placeholder="Ex: Manhã / 14:00" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
-          </div>
-        </div>
-  
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Pagamento</label>
-            <input id="pgto" type="text" placeholder="14 dias" class="w-full border rounded-lg p-2 text-sm outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">Nota Fiscal</label>
-            <select id="nf" class="w-full border rounded-lg p-2 text-sm bg-white">
-              <option value="Com NF.">Com NF.</option>
-              <option value="Sem NF.">Sem NF.</option>
+          <!-- BUSCAR CLIENTE CADASTRADO -->
+          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
+            <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
+            <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="">Selecione um cliente do histórico...</option>
             </select>
           </div>
-        </div>
-      </section>
-  
-      <!-- PRODUTO, TIPO DE VENDA E COMISSÃO -->
-      <section class="bg-white p-6 rounded-2xl shadow space-y-4 flex flex-col justify-between">
-        <div>
-          <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto, Tipo e Estimativa</h2>
-          <div class="space-y-3">
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda</label>
-                <select id="tipoVenda" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
-                  <option value="Venda Normal">Venda Normal</option>
-                  <option value="Bonificação">Bonificação (Sem comissão)</option>
-                </select>
+    
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Razão Social / Cliente</label>
+              <input id="razao" type="text" placeholder="Ex: Pizzaria Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Fantasia</label>
+              <input id="fantasia" type="text" placeholder="Ex: Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+          </div>
+    
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">CNPJ</label>
+              <input id="cnpj" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Contato/Tel</label>
+              <input id="contato" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+          </div>
+    
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Endereço Completo</label>
+            <input id="endereco" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+          </div>
+
+          <!-- CAMPOS DE ENTREGA -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1">📅 Dia da Entrega</label>
+              <input id="dataEntrega" type="date" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1">⏰ Horário de Entrega</label>
+              <input id="horarioEntrega" type="text" placeholder="Ex: Manhã / 14:00" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+            </div>
+          </div>
+    
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Pagamento</label>
+              <input id="pgto" type="text" placeholder="14 dias" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Nota Fiscal</label>
+              <select id="nf" class="w-full border rounded-lg p-2 text-sm bg-white">
+                <option value="Com NF.">Com NF.</option>
+                <option value="Sem NF.">Sem NF.</option>
+              </select>
+            </div>
+          </div>
+        </section>
+    
+        <!-- PRODUTO, TIPO DE VENDA E COMISSÃO -->
+        <section class="bg-white p-6 rounded-2xl shadow space-y-4 flex flex-col justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto, Tipo e Estimativa</h2>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda</label>
+                  <select id="tipoVenda" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                    <option value="Venda Normal">Venda Normal</option>
+                    <option value="Bonificação">Bonificação (Sem comissão)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Embalagem</label>
+                  <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                    <option value="pecas">Peças Avulsas (4kg/pç)</option>
+                    <option value="caixas">Caixas (1Cx = 8pç = 32kg)</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Embalagem</label>
-                <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
-                  <option value="pecas">Peças Avulsas (4kg/pç)</option>
-                  <option value="caixas">Caixas (1Cx = 8pç = 32kg)</option>
-                </select>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label id="labelQtd" class="block text-xs font-semibold text-gray-600 mb-1">Qtd de Peças</label>
+                  <input id="qtdPecas" type="number" value="5" class="w-full border rounded-lg p-2 text-sm outline-none font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Preço Praticado (R$/kg)</label>
+                  <input id="precoPraticado" type="number" step="0.10" class="w-full border rounded-lg p-2 text-sm outline-none font-bold text-amber-900" placeholder="Ex: 34.00" value="34.00" />
+                </div>
+              </div>
+
+              <!-- CAMPO DE REFERÊNCIA E PESO ESTIMADO -->
+              <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+                <div class="flex justify-between">
+                  <span>Preço Referência (Base):</span>
+                  <span class="font-bold">R$ <span id="valRef">32,00</span>/kg</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Peso Estimado Total:</span>
+                  <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
+                </div>
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label id="labelQtd" class="block text-xs font-semibold text-gray-600 mb-1">Qtd de Peças</label>
-                <input id="qtdPecas" type="number" value="5" class="w-full border rounded-lg p-2 text-sm outline-none font-bold" />
+    
+            <div id="painelPedidoAtual" class="mt-4 p-4 rounded-xl border space-y-2 bg-slate-50 border-gray-200">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Faturamento Estimado:</span>
+                <span id="resumoVendaAtual" class="font-bold text-gray-800">R$ 0,00</span>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Preço Praticado (R$/kg)</label>
-                <input id="precoPraticado" type="number" step="0.10" class="w-full border rounded-lg p-2 text-sm outline-none font-bold text-amber-900" placeholder="Ex: 34.00" value="34.00" />
-              </div>
-            </div>
-
-            <!-- CAMPO DE REFERÊNCIA E PESO ESTIMADO -->
-            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
-              <div class="flex justify-between">
-                <span>Preço Referência (Base):</span>
-                <span class="font-bold">R$ <span id="valRef">32,00</span>/kg</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Peso Estimado Total:</span>
-                <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
+              <div class="flex justify-between text-sm">
+                <span id="labelComissaoAtual" class="text-gray-600">Comissão Estimada:</span>
+                <span id="resumoComissaoAtual" class="font-extrabold text-green-600 text-base">R$ 0,00</span>
               </div>
             </div>
           </div>
-  
-          <div id="painelPedidoAtual" class="mt-4 p-4 rounded-xl border space-y-2 bg-slate-50 border-gray-200">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Faturamento Estimado:</span>
-              <span id="resumoVendaAtual" class="font-bold text-gray-800">R$ 0,00</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span id="labelComissaoAtual" class="text-gray-600">Comissão Estimada:</span>
-              <span id="resumoComissaoAtual" class="font-extrabold text-green-600 text-base">R$ 0,00</span>
-            </div>
+    
+          <button id="btnSalvarECopiar" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl shadow transition mt-4">
+            📋 Copiar Texto do WhatsApp e Gravar na Nuvem
+          </button>
+        </section>
+      </div>
+    
+      <!-- FECHAMENTO -->
+      <section class="bg-amber-50 border border-amber-200 p-6 rounded-2xl shadow space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-amber-900">3. Fechamento de Comissões</h2>
+            <p class="text-xs text-amber-800">Consolidação na nuvem em tempo real</p>
+          </div>
+          <button id="btnGerarFechamento" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-3 rounded-xl shadow transition">
+            📊 Fazer Fechamento Agora
+          </button>
+        </div>
+    
+        <div id="painelFechamento" class="hidden bg-white p-5 rounded-xl border border-amber-300 space-y-4">
+          <h3 id="tituloFechamento" class="font-bold text-gray-800 text-sm border-b pb-2"></h3>
+          <div id="detalhesPedidosFechamento" class="space-y-1.5 max-h-60 overflow-y-auto text-xs font-mono bg-slate-50 p-3 rounded-lg border"></div>
+          <div class="flex justify-between items-center p-3 bg-slate-100 rounded-lg text-sm">
+            <span class="font-semibold text-gray-700">Total Estimado a Receber:</span>
+            <span id="valorTotalFechamento" class="text-xl font-black text-green-600">R$ 0,00</span>
+          </div>
+          <div class="flex gap-3">
+            <button id="btnCopiarRelatorio" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm">
+              📋 Copiar Relatório Completo
+            </button>
+            <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
+              ✅ Concluir e Zerar Período
+            </button>
           </div>
         </div>
-  
-        <button id="btnSalvarECopiar" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl shadow transition mt-4">
-          📋 Copiar Texto do WhatsApp e Gravar na Nuvem
-        </button>
       </section>
     </div>
 
-    <!-- HISTÓRICO DE PEDIDOS COM FILTROS -->
-    <section class="bg-white border border-amber-200 p-6 rounded-2xl shadow space-y-4">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
-        <div>
-          <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
-          <p class="text-xs text-gray-500">Consulte, filtre, copie para o WhatsApp, edite ou exclua pedidos</p>
+    <!-- CONTEÚDO DA ABA: HISTÓRICO DE PEDIDOS (Oculto por padrão) -->
+    <div id="conteudoHistorico" class="hidden space-y-4">
+      <section class="bg-white border border-amber-200 p-6 rounded-2xl shadow space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
+            <p class="text-xs text-gray-500">Consulte, filtre, copie para o WhatsApp, edite ou exclua pedidos</p>
+          </div>
+          
+          <!-- FILTROS DO HISTÓRICO -->
+          <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
+            <select id="filtroTipoVenda" class="border rounded-lg p-2 text-xs bg-white">
+              <option value="">Todos os Tipos</option>
+              <option value="Venda Normal">Venda Normal</option>
+              <option value="Bonificação">Bonificação</option>
+            </select>
+            <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
+              <option value="todos">Todos Status</option>
+              <option value="abertos" selected>Em Aberto</option>
+              <option value="fechados">Fechados</option>
+            </select>
+          </div>
         </div>
-        
-        <!-- FILTROS DO HISTÓRICO -->
-        <div class="flex flex-wrap gap-2 w-full md:w-auto">
-          <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
-          <select id="filtroTipoVenda" class="border rounded-lg p-2 text-xs bg-white">
-            <option value="">Todos os Tipos</option>
-            <option value="Venda Normal">Venda Normal</option>
-            <option value="Bonificação">Bonificação</option>
-          </select>
-          <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
-            <option value="todos">Todos Status</option>
-            <option value="abertos" selected>Em Aberto</option>
-            <option value="fechados">Fechados</option>
-          </select>
-        </div>
-      </div>
 
-      <!-- TABELA DE HISTÓRICO -->
-      <div class="overflow-x-auto max-h-96">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-amber-100 text-amber-900 uppercase font-semibold">
-              <th class="p-2.5">Data/Cliente</th>
-              <th class="p-2.5">Tipo</th>
-              <th class="p-2.5">Qtd / Peso</th>
-              <th class="p-2.5">Praticado</th>
-              <th class="p-2.5">Comissão Est.</th>
-              <th class="p-2.5">Entrega</th>
-              <th class="p-2.5 text-center">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaHistorico" class="divide-y divide-gray-100">
-            <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando histórico...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  
-    <!-- FECHAMENTO -->
-    <section class="bg-amber-50 border border-amber-200 p-6 rounded-2xl shadow space-y-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="text-lg font-bold text-amber-900">3. Fechamento de Comissões</h2>
-          <p class="text-xs text-amber-800">Consolidação na nuvem em tempo real</p>
+        <!-- TABELA DE HISTÓRICO -->
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-amber-100 text-amber-900 uppercase font-semibold">
+                <th class="p-2.5">Data/Cliente</th>
+                <th class="p-2.5">Tipo</th>
+                <th class="p-2.5">Qtd / Peso</th>
+                <th class="p-2.5">Praticado</th>
+                <th class="p-2.5">Comissão Est.</th>
+                <th class="p-2.5">Entrega</th>
+                <th class="p-2.5 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaHistorico" class="divide-y divide-gray-100">
+              <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando histórico...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <button id="btnGerarFechamento" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-3 rounded-xl shadow transition">
-          📊 Fazer Fechamento Agora
-        </button>
-      </div>
-  
-      <div id="painelFechamento" class="hidden bg-white p-5 rounded-xl border border-amber-300 space-y-4">
-        <h3 id="tituloFechamento" class="font-bold text-gray-800 text-sm border-b pb-2"></h3>
-        <div id="detalhesPedidosFechamento" class="space-y-1.5 max-h-60 overflow-y-auto text-xs font-mono bg-slate-50 p-3 rounded-lg border"></div>
-        <div class="flex justify-between items-center p-3 bg-slate-100 rounded-lg text-sm">
-          <span class="font-semibold text-gray-700">Total Estimado a Receber:</span>
-          <span id="valorTotalFechamento" class="text-xl font-black text-green-600">R$ 0,00</span>
-        </div>
-        <div class="flex gap-3">
-          <button id="btnCopiarRelatorio" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm">
-            📋 Copiar Relatório Completo
-          </button>
-          <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
-            ✅ Concluir e Zerar Período
-          </button>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
+
   </div>
 
   <!-- SCRIPT JS + FIREBASE -->
@@ -285,6 +289,26 @@
     let relatorioTextoCopiar = "";
     let dataUltimoFechamento = null;
     const PRECO_REFERENCIA = 32.00;
+
+    // CONTROLE DE ABAS
+    window.mudarAba = function(aba) {
+      const btnNovo = document.getElementById('btnAbaNovo');
+      const btnHist = document.getElementById('btnAbaHistorico');
+      const contNovo = document.getElementById('conteudoNovo');
+      const contHist = document.getElementById('conteudoHistorico');
+
+      if (aba === 'novo') {
+        btnNovo.className = "bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm";
+        btnHist.className = "bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200";
+        contNovo.classList.remove('hidden');
+        contHist.classList.add('hidden');
+      } else {
+        btnHist.className = "bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm";
+        btnNovo.className = "bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200";
+        contHist.classList.remove('hidden');
+        contNovo.classList.add('hidden');
+      }
+    };
 
     onSnapshot(collection(db, "pedidos_mucarela"), (snapshot) => {
       todosPedidos = [];
@@ -439,7 +463,7 @@
       document.getElementById(id).addEventListener('change', atualizarTelaCalculo);
     });
 
-    // FUNÇÕES DE AÇÃO NA TABELA (COPIAR WHATSAPP, EDITAR, EXCLUIR)
+    // FUNÇÕES DE AÇÃO NA TABELA
     window.copiarPedidoZap = function(id) {
       const p = todosPedidos.find(item => item.id === id);
       if (!p) return;
@@ -464,7 +488,7 @@
       textoZap += `💳 *Condição Pgto:* ${p.pgto || 'A combinar'} | *NF:* ${p.nf || 'Com NF.'}`;
 
       navigator.clipboard.writeText(textoZap);
-      alert(`Texto do pedido de "${p.fantasia || p.razao}" copiado para a área de transferência!`);
+      alert(`Texto do pedido de "${p.fantasia || p.razao}" copiado!`);
     };
 
     window.editarPedido = function(id) {
@@ -488,6 +512,7 @@
       document.getElementById('precoPraticado').value = p.precoPraticado || 34.00;
 
       atualizarTelaCalculo();
+      mudarAba('novo'); // Volta para a aba de formulário
       window.scrollTo({ top: 0, behavior: 'smooth' });
       alert('Pedido carregado no formulário para edição.');
     };
@@ -545,7 +570,7 @@
             <td class="p-2.5 font-extrabold ${corComissao}">R$ ${p.comissao.toFixed(2).replace('.', ',')}</td>
             <td class="p-2.5 text-gray-600">${p.dataEntrega ? p.dataEntrega.split('-').reverse().join('/') : '-'} (${p.horarioEntrega || 'N/I'})</td>
             <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
-              <button onclick="copiarPedidoZap('${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]" title="Copiar para WhatsApp">📋 Copiar</button>
+              <button onclick="copiarPedidoZap('${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
               <button onclick="editarPedido('${p.id}')" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>
               <button onclick="excluirPedido('${p.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px]">🗑️ Excluir</button>
             </td>
@@ -558,27 +583,6 @@
     ['filtroBusca', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
       document.getElementById(id).addEventListener('input', renderizarHistorico);
       document.getElementById(id).addEventListener('change', renderizarHistorico);
-    });
-
-    // PARSER DE WHATSAPP
-    document.getElementById('btnProcessarZap').addEventListener('click', () => {
-      const texto = document.getElementById('textoWhatsapp').value;
-      if (!texto) return alert('Cole o texto do WhatsApp primeiro!');
-
-      const matchRazao = texto.match(/(?:Cliente|Razão Social|Empresa):\s*(.*)/i) || texto.match(/\*([A-Za-z0-9\sÃÕÁÉÍÓÚÂÊÎÔÛÇ.]+)\*/);
-      if (matchRazao) document.getElementById('razao').value = matchRazao[1].trim();
-
-      const matchQtd = texto.match(/(\d+)\s*(?:peças|pçs|pç|caixas|cx)/i);
-      if (matchQtd) document.getElementById('qtdPecas').value = matchQtd[1];
-
-      const matchPreco = texto.match(/R\$\s*([\d,.]+)/);
-      if (matchPreco) {
-        const precoLimpo = matchPreco[1].replace('.', '').replace(',', '.');
-        document.getElementById('precoPraticado').value = precoLimpo;
-      }
-
-      atualizarTelaCalculo();
-      alert('Dados preenchidos automaticamente pelo texto!');
     });
 
     // SALVAR OU ATUALIZAR NA NUVEM E COPIAR
@@ -639,7 +643,6 @@
         textoZap += `💵 *Faturamento Est.:* R$ ${res.faturamentoEstimado.toFixed(2).replace('.', ',')}\n`;
         textoZap += `💳 *Condição Pgto:* ${pgto} | *NF:* ${nf}`;
 
-        // Copia para a área de transferência com segurança
         await navigator.clipboard.writeText(textoZap);
 
         if (editandoId) {
