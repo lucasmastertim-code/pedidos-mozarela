@@ -9,14 +9,14 @@
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
   <div class="max-w-5xl mx-auto space-y-6">
    
-    <!-- CABEÇALHO COM MÉTRICAS COMPLETAS -->
+    <!-- CABEÇALHO COM MÉTRICAS -->
     <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Nuvem)</h1>
         <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Carregando dados da nuvem...</p>
       </div>
 
-      <!-- PAINEL DE COMISSÕES (Geral, Semanal e Mensal) -->
+      <!-- PAINEL DE COMISSÕES -->
       <div class="grid grid-cols-3 gap-2 w-full md:w-auto text-center">
         <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
           <span class="text-[10px] text-amber-200 block font-semibold">Em Aberto (Geral)</span>
@@ -29,7 +29,7 @@
           <span id="qtdSemana" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
         </div>
         <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
-          <span class="text-[10px] text-amber-200 block font-semibold">Ciclo Mensal (1 a 31)</span>
+          <span class="text-[10px] text-amber-200 block font-semibold">Ciclo Mensal (1-31)</span>
           <span id="comissaoMensal" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
           <span id="qtdMes" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
         </div>
@@ -58,6 +58,9 @@
             <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
           </div>
         </div>
+
+        <!-- ID OCULTO PARA EDIÇÃO -->
+        <input type="hidden" id="editandoId" value="" />
 
         <!-- BUSCAR CLIENTE CADASTRADO -->
         <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
@@ -121,17 +124,26 @@
         </div>
       </section>
   
-      <!-- PRODUTO E COMISSÃO -->
+      <!-- PRODUTO, TIPO DE VENDA E COMISSÃO -->
       <section class="bg-white p-6 rounded-2xl shadow space-y-4 flex flex-col justify-between">
         <div>
-          <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto e Estimativa</h2>
+          <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto, Tipo e Estimativa</h2>
           <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda / Embalagem</label>
-              <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
-                <option value="pecas">Peças Avulsas (Média 4kg/peça)</option>
-                <option value="caixas">Caixas Fechadas (1 Caixa = 8 peças = 32kg méd.)</option>
-              </select>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda</label>
+                <select id="tipoVenda" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                  <option value="Venda Normal">Venda Normal</option>
+                  <option value="Bonificação">Bonificação (Sem comissão)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Embalagem</label>
+                <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                  <option value="pecas">Peças Avulsas (4kg/pç)</option>
+                  <option value="caixas">Caixas (1Cx = 8pç = 32kg)</option>
+                </select>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -175,6 +187,51 @@
         </button>
       </section>
     </div>
+
+    <!-- HISTÓRICO DE PEDIDOS COM FILTROS -->
+    <section class="bg-white border border-amber-200 p-6 rounded-2xl shadow space-y-4">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
+        <div>
+          <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
+          <p class="text-xs text-gray-500">Consulte, filtre, edite ou exclua pedidos lançados</p>
+        </div>
+        
+        <!-- FILTROS DO HISTÓRICO -->
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
+          <select id="filtroTipoVenda" class="border rounded-lg p-2 text-xs bg-white">
+            <option value="">Todos os Tipos</option>
+            <option value="Venda Normal">Venda Normal</option>
+            <option value="Bonificação">Bonificação</option>
+          </select>
+          <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
+            <option value="todos">Todos Status</option>
+            <option value="abertos" selected>Em Aberto</option>
+            <option value="fechados">Fechados</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABELA DE HISTÓRICO -->
+      <div class="overflow-x-auto max-h-96">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-amber-100 text-amber-900 uppercase font-semibold">
+              <th class="p-2.5">Data/Cliente</th>
+              <th class="p-2.5">Tipo</th>
+              <th class="p-2.5">Qtd / Peso</th>
+              <th class="p-2.5">Praticado</th>
+              <th class="p-2.5">Comissão Est.</th>
+              <th class="p-2.5">Entrega</th>
+              <th class="p-2.5 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaHistorico" class="divide-y divide-gray-100">
+            <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando histórico...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   
     <!-- FECHAMENTO -->
     <section class="bg-amber-50 border border-amber-200 p-6 rounded-2xl shadow space-y-4">
@@ -210,7 +267,7 @@
   <!-- SCRIPT JS + FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBve65hr7bd-APMwIyjRV9OrCL42QEy468",
@@ -236,6 +293,7 @@
       });
       atualizarInterface();
       atualizarSelectClientes();
+      renderizarHistorico();
     });
 
     onSnapshot(doc(db, "configuracao_mucarela", "fechamento"), (docSnap) => {
@@ -248,7 +306,6 @@
     });
 
     function atualizarInterface() {
-      // 1. Geral em aberto
       const pendentes = todosPedidos.filter(p => !p.fechado);
       document.getElementById('qtdPendente').innerText = `(${pendentes.length} abertos)`;
 
@@ -259,11 +316,8 @@
       comissaoEl.innerText = `R$ ${totalComissaoGeral.toFixed(2).replace('.', ',')}`;
       comissaoEl.className = totalComissaoGeral >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
 
-      // 2. Cálculo Semanal e Mensal (considerando todos os pedidos criados ou da data atual)
       const agora = new Date();
-      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1); // Dia 1 do mês atual
-      
-      // Semana atual (últimos 7 dias ou baseada na semana do ano)
+      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
       const umDiaMs = 24 * 60 * 60 * 1000;
       const inicioSemana = new Date(agora.getTime() - (7 * umDiaMs));
 
@@ -276,26 +330,22 @@
         if (!p.dataHora) return;
         const dataPedido = new Date(p.dataHora);
 
-        // Filtro Mensal (do dia 1 até 31 do mês atual)
         if (dataPedido >= inicioMes && dataPedido <= agora) {
           totalMes += p.comissao;
           qtdMes++;
         }
 
-        // Filtro Semanal (últimos 7 dias)
         if (dataPedido >= inicioSemana && dataPedido <= agora) {
           totalSemana += p.comissao;
           qtdSemana++;
         }
       });
 
-      // Atualiza na tela: Semana
       document.getElementById('qtdSemana').innerText = `(${qtdSemana} pedidos)`;
       const comSemanaEl = document.getElementById('comissaoSemanal');
       comSemanaEl.innerText = `R$ ${totalSemana.toFixed(2).replace('.', ',')}`;
       comSemanaEl.className = totalSemana >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
 
-      // Atualiza na tela: Mês (1 a 31)
       document.getElementById('qtdMes').innerText = `(${qtdMes} pedidos)`;
       const comMesEl = document.getElementById('comissaoMensal');
       comMesEl.innerText = `R$ ${totalMes.toFixed(2).replace('.', ',')}`;
@@ -315,9 +365,7 @@
 
       const clientesUnicos = {};
       todosPedidos.forEach(p => {
-        if (p.razao) {
-          clientesUnicos[p.razao] = p;
-        }
+        if (p.razao) clientesUnicos[p.razao] = p;
       });
 
       Object.values(clientesUnicos).forEach(cliente => {
@@ -352,6 +400,7 @@
       const qtdInput = parseFloat(document.getElementById('qtdPecas').value) || 0;
       const precoPraticado = parseFloat(document.getElementById('precoPraticado').value) || 0;
       const isLucas = document.getElementById('isLucas').checked;
+      const tipoVenda = document.getElementById('tipoVenda').value;
 
       let totalPecas = tipo === 'caixas' ? qtdInput * 8 : qtdInput;
       let pesoEstimadoKg = totalPecas * 4.0;
@@ -359,14 +408,16 @@
       let faturamentoEstimado = precoPraticado * pesoEstimadoKg;
       let comissaoVal = 0;
 
-      if (isLucas) {
+      if (tipoVenda === 'Bonificação') {
+        comissaoVal = 0;
+      } else if (isLucas) {
         comissaoVal = -faturamentoEstimado;
       } else {
         const diferencaPorKg = precoPraticado - PRECO_REFERENCIA;
         comissaoVal = diferencaPorKg * pesoEstimadoKg;
       }
 
-      return { totalPecas, pesoEstimadoKg, faturamentoEstimado, comissaoVal, tipo };
+      return { totalPecas, pesoEstimadoKg, faturamentoEstimado, comissaoVal, tipo, tipoVenda };
     }
 
     function atualizarTelaCalculo() {
@@ -383,9 +434,102 @@
       comissaoEl.className = res.comissaoVal >= 0 ? 'font-extrabold text-green-600 text-base' : 'font-extrabold text-red-600 text-base';
     }
 
-    ['tipoEmbalagem', 'qtdPecas', 'precoPraticado', 'isLucas'].forEach(id => {
+    ['tipoEmbalagem', 'qtdPecas', 'precoPraticado', 'isLucas', 'tipoVenda'].forEach(id => {
       document.getElementById(id).addEventListener('input', atualizarTelaCalculo);
       document.getElementById(id).addEventListener('change', atualizarTelaCalculo);
+    });
+
+    // RENDERIZAR TABELA DE HISTÓRICO COM BOTÕES DE EDITAR E EXCLUIR
+    window.editarPedido = function(id) {
+      const p = todosPedidos.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('editandoId').value = p.id;
+      document.getElementById('isLucas').checked = p.isLucas || false;
+      document.getElementById('razao').value = p.razao || '';
+      document.getElementById('fantasia').value = p.fantasia || '';
+      document.getElementById('cnpj').value = p.cnpj || '';
+      document.getElementById('contato').value = p.contato || '';
+      document.getElementById('endereco').value = p.endereco || '';
+      document.getElementById('dataEntrega').value = p.dataEntrega || '';
+      document.getElementById('horarioEntrega').value = p.horarioEntrega || '';
+      document.getElementById('pgto').value = p.pgto || '';
+      document.getElementById('nf').value = p.nf || 'Com NF.';
+      document.getElementById('tipoVenda').value = p.tipoVenda || 'Venda Normal';
+      document.getElementById('tipoEmbalagem').value = p.tipoEmbalagem || 'pecas';
+      document.getElementById('qtdPecas').value = p.qtdInput || 5;
+      document.getElementById('precoPraticado').value = p.precoPraticado || 34.00;
+
+      atualizarTelaCalculo();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert('Pedido carregado no formulário para edição. Faça as alterações e clique em salvar.');
+    };
+
+    window.excluirPedido = async function(id) {
+      if (!confirm('Deseja realmente excluir este pedido do histórico?')) return;
+      try {
+        await deleteDoc(doc(db, "pedidos_mucarela", id));
+        alert('Pedido excluído com sucesso!');
+      } catch (e) {
+        console.error("Erro ao excluir:", e);
+        alert('Erro ao excluir pedido.');
+      }
+    };
+
+    function renderizarHistorico() {
+      const tbody = document.getElementById('tabelaHistorico');
+      const busca = document.getElementById('filtroBusca').value.toLowerCase();
+      const tipoVendaFiltro = document.getElementById('filtroTipoVenda').value;
+      const statusFiltro = document.getElementById('filtroStatus').value;
+
+      let filtrados = todosPedidos.filter(p => {
+        const matchBusca = (p.razao && p.razao.toLowerCase().includes(busca)) || (p.fantasia && p.fantasia.toLowerCase().includes(busca));
+        const matchTipo = !tipoVendaFiltro || p.tipoVenda === tipoVendaFiltro;
+        
+        let matchStatus = true;
+        if (statusFiltro === 'abertos') matchStatus = !p.fechado;
+        if (statusFiltro === 'fechados') matchStatus = p.fechado;
+
+        return matchBusca && matchTipo && matchStatus;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Nenhum pedido encontrado.</td></tr>`;
+        return;
+      }
+
+      filtrados.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+
+      let html = '';
+      filtrados.forEach(p => {
+        const dataCriacao = p.dataHora ? new Date(p.dataHora).toLocaleDateString('pt-BR') : '';
+        const corComissao = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
+        const badgeTipo = p.tipoVenda === 'Bonificação' ? '<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Bonificação</span>' : '<span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Venda</span>';
+        
+        html += `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2.5">
+              <div class="font-bold text-gray-800">${p.fantasia || p.razao}</div>
+              <div class="text-[10px] text-gray-400">${dataCriacao}</div>
+            </td>
+            <td class="p-2.5">${badgeTipo}</td>
+            <td class="p-2.5">${p.qtdInput} ${p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs'} (~${p.pesoEstimadoKg}kg)</td>
+            <td class="p-2.5 font-semibold">R$ ${p.precoPraticado.toFixed(2).replace('.', ',')}</td>
+            <td class="p-2.5 font-extrabold ${corComissao}">R$ ${p.comissao.toFixed(2).replace('.', ',')}</td>
+            <td class="p-2.5 text-gray-600">${p.dataEntrega ? p.dataEntrega.split('-').reverse().join('/') : '-'} (${p.horarioEntrega || 'N/I'})</td>
+            <td class="p-2.5 text-center space-x-1">
+              <button onclick="editarPedido('${p.id}')" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>
+              <button onclick="excluirPedido('${p.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px]">🗑️ Excluir</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    ['filtroBusca', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
+      document.getElementById(id).addEventListener('input', renderizarHistorico);
+      document.getElementById(id).addEventListener('change', renderizarHistorico);
     });
 
     // PARSER DE WHATSAPP
@@ -409,8 +553,9 @@
       alert('Dados preenchidos automaticamente pelo texto!');
     });
 
-    // SALVAR NA NUVEM
+    // SALVAR OU ATUALIZAR NA NUVEM
     document.getElementById('btnSalvarECopiar').addEventListener('click', async () => {
+      const editandoId = document.getElementById('editandoId').value;
       const isLucas = document.getElementById('isLucas').checked;
       const razao = document.getElementById('razao').value;
       const fantasia = document.getElementById('fantasia').value || razao;
@@ -437,9 +582,10 @@
         if (partes.length === 3) dataEntregaFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
       }
 
-      const novoPedido = {
+      const dadosPedido = {
         isLucas, razao, fantasia, cnpj, contato, endereco, dataEntrega, horarioEntrega, pgto, nf,
         tipoEmbalagem: res.tipo,
+        tipoVenda: res.tipoVenda,
         qtdInput,
         totalPecas: res.totalPecas,
         pesoEstimadoKg: res.pesoEstimadoKg,
@@ -452,9 +598,18 @@
       };
 
       try {
-        await addDoc(collection(db, "pedidos_mucarela"), novoPedido);
+        if (editandoId) {
+          // Atualiza pedido existente
+          await updateDoc(doc(db, "pedidos_mucarela", editandoId), dadosPedido);
+          document.getElementById('editandoId').value = '';
+          alert('Pedido atualizado com sucesso na nuvem!');
+        } else {
+          // Cria novo pedido
+          await addDoc(collection(db, "pedidos_mucarela"), dadosPedido);
+          alert('Pedido salvo na nuvem com sucesso!');
+        }
 
-        let textoZap = `🧀 *NOVO PEDIDO - MUÇARELA* 🧀\n\n`;
+        let textoZap = `🧀 *PEDIDO - MUÇARELA* 🧀\n\n`;
         textoZap += `🏢 *Cliente:* ${razao} (${fantasia})\n`;
         if(cnpj) textoZap += `📄 *CNPJ:* ${cnpj}\n`;
         if(contato) textoZap += `📞 *Contato:* ${contato}\n`;
@@ -462,13 +617,12 @@
         if(dataEntregaFormatada || horarioEntrega) {
           textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${horarioEntrega || 'Horário a combinar'}\n`;
         }
-        textoZap += `📦 *Quantidade:* ${qtdInput} ${res.tipo === 'caixas' ? 'caixas' : 'peças'} (~${res.pesoEstimadoKg}kg est.)\n`;
+        textoZap += `📦 *Tipo:* ${res.tipoVenda} | *Qtd:* ${qtdInput} ${res.tipo === 'caixas' ? 'caixas' : 'peças'} (~${res.pesoEstimadoKg}kg est.)\n`;
         textoZap += `💰 *Preço Praticado:* R$ ${precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
         textoZap += `💵 *Faturamento Est.:* R$ ${res.faturamentoEstimado.toFixed(2).replace('.', ',')}\n`;
         textoZap += `💳 *Condição Pgto:* ${pgto} | *NF:* ${nf}`;
 
         navigator.clipboard.writeText(textoZap);
-        alert('Pedido salvo na nuvem e texto formatado copiado!');
       } catch (e) {
         console.error("Erro ao salvar: ", e);
         alert('Erro ao salvar no banco de dados.');
