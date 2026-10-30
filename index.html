@@ -36,7 +36,7 @@
       </div>
     </header>
 
-    <!-- MENU DE ABAS (Navegação igual Top Fish) -->
+    <!-- MENU DE ABAS -->
     <div class="flex gap-2 border-b pb-2">
       <button id="btnAbaNovo" onclick="mudarAba('novo')" class="bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
         ➕ Novo Pedido & Fechamento
@@ -164,7 +164,7 @@
                   <span class="font-bold">R$ <span id="valRef">32,00</span>/kg</span>
                 </div>
                 <div class="flex justify-between">
-                  <span>Peso Estimado Total:</span>
+                  <span>Peso Estimado Interno:</span>
                   <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
                 </div>
               </div>
@@ -219,7 +219,7 @@
       </section>
     </div>
 
-    <!-- CONTEÚDO DA ABA: HISTÓRICO DE PEDIDOS (Oculto por padrão) -->
+    <!-- CONTEÚDO DA ABA: HISTÓRICO DE PEDIDOS -->
     <div id="conteudoHistorico" class="hidden space-y-4">
       <section class="bg-white border border-amber-200 p-6 rounded-2xl shadow space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
@@ -251,7 +251,7 @@
               <tr class="bg-amber-100 text-amber-900 uppercase font-semibold">
                 <th class="p-2.5">Data/Cliente</th>
                 <th class="p-2.5">Tipo</th>
-                <th class="p-2.5">Qtd / Peso</th>
+                <th class="p-2.5">Qtd</th>
                 <th class="p-2.5">Praticado</th>
                 <th class="p-2.5">Comissão Est.</th>
                 <th class="p-2.5">Entrega</th>
@@ -290,7 +290,6 @@
     let dataUltimoFechamento = null;
     const PRECO_REFERENCIA = 32.00;
 
-    // CONTROLE DE ABAS
     window.mudarAba = function(aba) {
       const btnNovo = document.getElementById('btnAbaNovo');
       const btnHist = document.getElementById('btnAbaHistorico');
@@ -463,7 +462,6 @@
       document.getElementById(id).addEventListener('change', atualizarTelaCalculo);
     });
 
-    // FUNÇÕES DE AÇÃO NA TABELA
     window.copiarPedidoZap = function(id) {
       const p = todosPedidos.find(item => item.id === id);
       if (!p) return;
@@ -474,6 +472,8 @@
         if (partes.length === 3) dataEntregaFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
       }
 
+      const unidadeStr = p.tipoEmbalagem === 'caixas' ? (p.qtdInput == 1 ? 'caixa' : 'caixas') : (p.qtdInput == 1 ? 'peça' : 'peças');
+
       let textoZap = `🧀 *PEDIDO - MUÇARELA* 🧀\n\n`;
       textoZap += `🏢 *Cliente:* ${p.razao} (${p.fantasia || p.razao})\n`;
       if(p.cnpj) textoZap += `📄 *CNPJ:* ${p.cnpj}\n`;
@@ -482,9 +482,8 @@
       if(dataEntregaFormatada || p.horarioEntrega) {
         textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${p.horarioEntrega || 'Horário a combinar'}\n`;
       }
-      textoZap += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${p.qtdInput} ${p.tipoEmbalagem === 'caixas' ? 'caixas' : 'peças'} (~${p.pesoEstimadoKg}kg est.)\n`;
+      textoZap += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${p.qtdInput} ${unidadeStr}\n`;
       textoZap += `💰 *Preço Praticado:* R$ ${p.precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
-      textoZap += `💵 *Faturamento Est.:* R$ ${p.totalVenda.toFixed(2).replace('.', ',')}\n`;
       textoZap += `💳 *Condição Pgto:* ${p.pgto || 'A combinar'} | *NF:* ${p.nf || 'Com NF.'}`;
 
       navigator.clipboard.writeText(textoZap);
@@ -512,7 +511,7 @@
       document.getElementById('precoPraticado').value = p.precoPraticado || 34.00;
 
       atualizarTelaCalculo();
-      mudarAba('novo'); // Volta para a aba de formulário
+      mudarAba('novo');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       alert('Pedido carregado no formulário para edição.');
     };
@@ -557,6 +556,7 @@
         const dataCriacao = p.dataHora ? new Date(p.dataHora).toLocaleDateString('pt-BR') : '';
         const corComissao = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
         const badgeTipo = p.tipoVenda === 'Bonificação' ? '<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Bonificação</span>' : '<span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Venda</span>';
+        const unidadeStr = p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs';
         
         html += `
           <tr class="hover:bg-slate-50">
@@ -565,7 +565,7 @@
               <div class="text-[10px] text-gray-400">${dataCriacao}</div>
             </td>
             <td class="p-2.5">${badgeTipo}</td>
-            <td class="p-2.5">${p.qtdInput} ${p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs'} (~${p.pesoEstimadoKg}kg)</td>
+            <td class="p-2.5">${p.qtdInput} ${unidadeStr}</td>
             <td class="p-2.5 font-semibold">R$ ${p.precoPraticado.toFixed(2).replace('.', ',')}</td>
             <td class="p-2.5 font-extrabold ${corComissao}">R$ ${p.comissao.toFixed(2).replace('.', ',')}</td>
             <td class="p-2.5 text-gray-600">${p.dataEntrega ? p.dataEntrega.split('-').reverse().join('/') : '-'} (${p.horarioEntrega || 'N/I'})</td>
@@ -630,6 +630,8 @@
       };
 
       try {
+        const unidadeStr = res.tipo === 'caixas' ? (qtdInput == 1 ? 'caixa' : 'caixas') : (qtdInput == 1 ? 'peça' : 'peças');
+
         let textoZap = `🧀 *PEDIDO - MUÇARELA* 🧀\n\n`;
         textoZap += `🏢 *Cliente:* ${razao} (${fantasia})\n`;
         if(cnpj) textoZap += `📄 *CNPJ:* ${cnpj}\n`;
@@ -638,9 +640,8 @@
         if(dataEntregaFormatada || horarioEntrega) {
           textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${horarioEntrega || 'Horário a combinar'}\n`;
         }
-        textoZap += `📦 *Tipo:* ${res.tipoVenda} | *Qtd:* ${qtdInput} ${res.tipo === 'caixas' ? 'caixas' : 'peças'} (~${res.pesoEstimadoKg}kg est.)\n`;
+        textoZap += `📦 *Tipo:* ${res.tipoVenda} | *Qtd:* ${qtdInput} ${unidadeStr}\n`;
         textoZap += `💰 *Preço Praticado:* R$ ${precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
-        textoZap += `💵 *Faturamento Est.:* R$ ${res.faturamentoEstimado.toFixed(2).replace('.', ',')}\n`;
         textoZap += `💳 *Condição Pgto:* ${pgto} | *NF:* ${nf}`;
 
         await navigator.clipboard.writeText(textoZap);
