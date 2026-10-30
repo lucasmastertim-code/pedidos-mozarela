@@ -9,16 +9,30 @@
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
   <div class="max-w-5xl mx-auto space-y-6">
    
-    <!-- CABEÇALHO -->
-    <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
+    <!-- CABEÇALHO COM MÉTRICAS COMPLETAS -->
+    <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Nuvem)</h1>
         <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Carregando dados da nuvem...</p>
       </div>
-      <div class="text-right bg-amber-900 p-3 rounded-xl border border-amber-700">
-        <span class="text-xs text-amber-200 block font-semibold">Comissão Estimada em Aberto:</span>
-        <span id="comissaoConsolidada" class="text-2xl font-black text-amber-300">R$ 0,00</span>
-        <span id="qtdPendente" class="text-xs text-amber-200 block mt-0.5">(0 pedidos pendentes)</span>
+
+      <!-- PAINEL DE COMISSÕES (Geral, Semanal e Mensal) -->
+      <div class="grid grid-cols-3 gap-2 w-full md:w-auto text-center">
+        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
+          <span class="text-[10px] text-amber-200 block font-semibold">Em Aberto (Geral)</span>
+          <span id="comissaoConsolidada" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
+          <span id="qtdPendente" class="text-[10px] text-amber-200 block">(0 abertos)</span>
+        </div>
+        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
+          <span class="text-[10px] text-amber-200 block font-semibold">Esta Semana</span>
+          <span id="comissaoSemanal" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
+          <span id="qtdSemana" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
+        </div>
+        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
+          <span class="text-[10px] text-amber-200 block font-semibold">Ciclo Mensal (1 a 31)</span>
+          <span id="comissaoMensal" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
+          <span id="qtdMes" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
+        </div>
       </div>
     </header>
   
@@ -35,10 +49,10 @@
   
     <!-- FORMULÁRIO -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- DADOS DO CLIENTE -->
+      <!-- DADOS DO CLIENTE E ENTREGA -->
       <section class="bg-white p-6 rounded-2xl shadow space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
-          <h2 class="text-lg font-bold text-gray-800">1. Dados do Cliente</h2>
+          <h2 class="text-lg font-bold text-gray-800">1. Dados do Cliente & Entrega</h2>
           <div class="flex items-center gap-2 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
             <input type="checkbox" id="isLucas" class="w-4 h-4 text-amber-600 rounded">
             <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
@@ -78,6 +92,18 @@
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Endereço Completo</label>
           <input id="endereco" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+        </div>
+
+        <!-- CAMPOS DE ENTREGA -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-amber-900 mb-1">📅 Dia da Entrega</label>
+            <input id="dataEntrega" type="date" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-amber-900 mb-1">⏰ Horário de Entrega</label>
+            <input id="horarioEntrega" type="text" placeholder="Ex: Manhã / 14:00" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+          </div>
         </div>
   
         <div class="grid grid-cols-2 gap-2">
@@ -201,7 +227,7 @@
     let todosPedidos = [];
     let relatorioTextoCopiar = "";
     let dataUltimoFechamento = null;
-    const PRECO_REFERENCIA = 32.00; // Preço base fixo
+    const PRECO_REFERENCIA = 32.00;
 
     onSnapshot(collection(db, "pedidos_mucarela"), (snapshot) => {
       todosPedidos = [];
@@ -222,15 +248,58 @@
     });
 
     function atualizarInterface() {
+      // 1. Geral em aberto
       const pendentes = todosPedidos.filter(p => !p.fechado);
-      document.getElementById('qtdPendente').innerText = `(${pendentes.length} pedidos em aberto)`;
+      document.getElementById('qtdPendente').innerText = `(${pendentes.length} abertos)`;
 
-      let totalComissao = 0;
-      pendentes.forEach(p => totalComissao += p.comissao);
+      let totalComissaoGeral = 0;
+      pendentes.forEach(p => totalComissaoGeral += p.comissao);
 
       const comissaoEl = document.getElementById('comissaoConsolidada');
-      comissaoEl.innerText = `R$ ${totalComissao.toFixed(2).replace('.', ',')}`;
-      comissaoEl.className = totalComissao >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
+      comissaoEl.innerText = `R$ ${totalComissaoGeral.toFixed(2).replace('.', ',')}`;
+      comissaoEl.className = totalComissaoGeral >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
+
+      // 2. Cálculo Semanal e Mensal (considerando todos os pedidos criados ou da data atual)
+      const agora = new Date();
+      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1); // Dia 1 do mês atual
+      
+      // Semana atual (últimos 7 dias ou baseada na semana do ano)
+      const umDiaMs = 24 * 60 * 60 * 1000;
+      const inicioSemana = new Date(agora.getTime() - (7 * umDiaMs));
+
+      let totalSemana = 0;
+      let qtdSemana = 0;
+      let totalMes = 0;
+      let qtdMes = 0;
+
+      todosPedidos.forEach(p => {
+        if (!p.dataHora) return;
+        const dataPedido = new Date(p.dataHora);
+
+        // Filtro Mensal (do dia 1 até 31 do mês atual)
+        if (dataPedido >= inicioMes && dataPedido <= agora) {
+          totalMes += p.comissao;
+          qtdMes++;
+        }
+
+        // Filtro Semanal (últimos 7 dias)
+        if (dataPedido >= inicioSemana && dataPedido <= agora) {
+          totalSemana += p.comissao;
+          qtdSemana++;
+        }
+      });
+
+      // Atualiza na tela: Semana
+      document.getElementById('qtdSemana').innerText = `(${qtdSemana} pedidos)`;
+      const comSemanaEl = document.getElementById('comissaoSemanal');
+      comSemanaEl.innerText = `R$ ${totalSemana.toFixed(2).replace('.', ',')}`;
+      comSemanaEl.className = totalSemana >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
+
+      // Atualiza na tela: Mês (1 a 31)
+      document.getElementById('qtdMes').innerText = `(${qtdMes} pedidos)`;
+      const comMesEl = document.getElementById('comissaoMensal');
+      comMesEl.innerText = `R$ ${totalMes.toFixed(2).replace('.', ',')}`;
+      comMesEl.className = totalMes >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
 
       if (dataUltimoFechamento) {
         const d = new Date(dataUltimoFechamento);
@@ -240,17 +309,14 @@
       }
     }
 
-    // POPULAR O SELECT DE CLIENTES COM BASE NO HISTÓRICO
     function atualizarSelectClientes() {
       const select = document.getElementById('selectClienteSalvo');
-      // Mantém a primeira opção
       select.innerHTML = '<option value="">Selecione um cliente do histórico...</option>';
 
-      // Filtra clientes únicos pelo CNPJ ou Razão Social
       const clientesUnicos = {};
       todosPedidos.forEach(p => {
         if (p.razao) {
-          clientesUnicos[p.razao] = p; // Guarda o último registro do cliente
+          clientesUnicos[p.razao] = p;
         }
       });
 
@@ -258,7 +324,6 @@
         const opt = document.createElement('option');
         opt.value = cliente.razao;
         opt.textContent = `${cliente.razao} (${cliente.fantasia || ''})`;
-        // Guarda os dados no elemento para recuperar depois
         opt.dataset.fantasia = cliente.fantasia || '';
         opt.dataset.cnpj = cliente.cnpj || '';
         opt.dataset.contato = cliente.contato || '';
@@ -269,7 +334,6 @@
       });
     }
 
-    // AO SELECIONAR UM CLIENTE SALVO, PREENCHE AUTOMATICAMENTE
     document.getElementById('selectClienteSalvo').addEventListener('change', (e) => {
       const opt = e.target.selectedOptions[0];
       if (!opt || !opt.value) return;
@@ -353,6 +417,8 @@
       const cnpj = document.getElementById('cnpj').value;
       const contato = document.getElementById('contato').value;
       const endereco = document.getElementById('endereco').value;
+      const dataEntrega = document.getElementById('dataEntrega').value;
+      const horarioEntrega = document.getElementById('horarioEntrega').value;
       const pgto = document.getElementById('pgto').value;
       const nf = document.getElementById('nf').value;
       
@@ -365,8 +431,14 @@
         return;
       }
 
+      let dataEntregaFormatada = dataEntrega;
+      if (dataEntrega) {
+        const partes = dataEntrega.split('-');
+        if (partes.length === 3) dataEntregaFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+
       const novoPedido = {
-        isLucas, razao, fantasia, cnpj, contato, endereco, pgto, nf,
+        isLucas, razao, fantasia, cnpj, contato, endereco, dataEntrega, horarioEntrega, pgto, nf,
         tipoEmbalagem: res.tipo,
         qtdInput,
         totalPecas: res.totalPecas,
@@ -387,6 +459,9 @@
         if(cnpj) textoZap += `📄 *CNPJ:* ${cnpj}\n`;
         if(contato) textoZap += `📞 *Contato:* ${contato}\n`;
         if(endereco) textoZap += `📍 *Endereço:* ${endereco}\n`;
+        if(dataEntregaFormatada || horarioEntrega) {
+          textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${horarioEntrega || 'Horário a combinar'}\n`;
+        }
         textoZap += `📦 *Quantidade:* ${qtdInput} ${res.tipo === 'caixas' ? 'caixas' : 'peças'} (~${res.pesoEstimadoKg}kg est.)\n`;
         textoZap += `💰 *Preço Praticado:* R$ ${precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
         textoZap += `💵 *Faturamento Est.:* R$ ${res.faturamentoEstimado.toFixed(2).replace('.', ',')}\n`;
