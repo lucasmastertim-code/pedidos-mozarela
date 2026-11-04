@@ -15,28 +15,14 @@
         <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Nuvem)</h1>
         <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Carregando dados da nuvem...</p>
       </div>
-
-      <!-- PAINEL DE COMISSÕES -->
-      <div class="grid grid-cols-3 gap-2 w-full md:w-auto text-center">
-        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
-          <span class="text-[10px] text-amber-200 block font-semibold">Em Aberto (Geral)</span>
-          <span id="comissaoConsolidada" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
-          <span id="qtdPendente" class="text-[10px] text-amber-200 block">(0 abertos)</span>
-        </div>
-        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
-          <span class="text-[10px] text-amber-200 block font-semibold">Esta Semana</span>
-          <span id="comissaoSemanal" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
-          <span id="qtdSemana" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
-        </div>
-        <div class="bg-amber-900 p-2.5 rounded-xl border border-amber-700">
-          <span class="text-[10px] text-amber-200 block font-semibold">Ciclo Mensal (1-31)</span>
-          <span id="comissaoMensal" class="text-lg md:text-xl font-black text-amber-300">R$ 0,00</span>
-          <span id="qtdMes" class="text-[10px] text-amber-200 block">(0 pedidos)</span>
-        </div>
+      <div class="text-right bg-amber-900 p-3 rounded-xl border border-amber-700 w-full md:w-auto">
+        <span class="text-xs text-amber-200 block font-semibold">Comissão Acumulada em Aberto:</span>
+        <span id="comissaoConsolidada" class="text-2xl font-black text-amber-300">R$ 0,00</span>
+        <span id="qtdPendente" class="text-xs text-amber-200 block mt-0.5">(0 pedidos pendentes)</span>
       </div>
     </header>
 
-    <!-- MENU DE ABAS -->
+    <!-- MENU DE ABAS (Padrão Top Fish) -->
     <div class="flex gap-2 border-b pb-2">
       <button id="btnAbaNovo" onclick="mudarAba('novo')" class="bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
         ➕ Novo Pedido & Fechamento
@@ -160,11 +146,11 @@
               <!-- CAMPO DE REFERÊNCIA E PESO ESTIMADO -->
               <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
                 <div class="flex justify-between">
-                  <span>Preço Referência (Base):</span>
-                  <span class="font-bold">R$ <span id="valRef">32,00</span>/kg</span>
+                  <span>Preço Base de Custo:</span>
+                  <span class="font-bold">R$ 32,00/kg</span>
                 </div>
                 <div class="flex justify-between">
-                  <span>Peso Estimado Interno:</span>
+                  <span>Peso Estimado Total:</span>
                   <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
                 </div>
               </div>
@@ -204,7 +190,7 @@
           <h3 id="tituloFechamento" class="font-bold text-gray-800 text-sm border-b pb-2"></h3>
           <div id="detalhesPedidosFechamento" class="space-y-1.5 max-h-60 overflow-y-auto text-xs font-mono bg-slate-50 p-3 rounded-lg border"></div>
           <div class="flex justify-between items-center p-3 bg-slate-100 rounded-lg text-sm">
-            <span class="font-semibold text-gray-700">Total Estimado a Receber:</span>
+            <span class="font-semibold text-gray-700">Total Líquido a Receber:</span>
             <span id="valorTotalFechamento" class="text-xl font-black text-green-600">R$ 0,00</span>
           </div>
           <div class="flex gap-3">
@@ -288,7 +274,7 @@
     let todosPedidos = [];
     let relatorioTextoCopiar = "";
     let dataUltimoFechamento = null;
-    const PRECO_REFERENCIA = 32.00;
+    const PRECO_BASE = 32.00;
 
     window.mudarAba = function(aba) {
       const btnNovo = document.getElementById('btnAbaNovo');
@@ -330,49 +316,14 @@
 
     function atualizarInterface() {
       const pendentes = todosPedidos.filter(p => !p.fechado);
-      document.getElementById('qtdPendente').innerText = `(${pendentes.length} abertos)`;
+      document.getElementById('qtdPendente').innerText = `(${pendentes.length} pedidos pendentes)`;
 
       let totalComissaoGeral = 0;
       pendentes.forEach(p => totalComissaoGeral += p.comissao);
 
       const comissaoEl = document.getElementById('comissaoConsolidada');
       comissaoEl.innerText = `R$ ${totalComissaoGeral.toFixed(2).replace('.', ',')}`;
-      comissaoEl.className = totalComissaoGeral >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
-
-      const agora = new Date();
-      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
-      const umDiaMs = 24 * 60 * 60 * 1000;
-      const inicioSemana = new Date(agora.getTime() - (7 * umDiaMs));
-
-      let totalSemana = 0;
-      let qtdSemana = 0;
-      let totalMes = 0;
-      let qtdMes = 0;
-
-      todosPedidos.forEach(p => {
-        if (!p.dataHora) return;
-        const dataPedido = new Date(p.dataHora);
-
-        if (dataPedido >= inicioMes && dataPedido <= agora) {
-          totalMes += p.comissao;
-          qtdMes++;
-        }
-
-        if (dataPedido >= inicioSemana && dataPedido <= agora) {
-          totalSemana += p.comissao;
-          qtdSemana++;
-        }
-      });
-
-      document.getElementById('qtdSemana').innerText = `(${qtdSemana} pedidos)`;
-      const comSemanaEl = document.getElementById('comissaoSemanal');
-      comSemanaEl.innerText = `R$ ${totalSemana.toFixed(2).replace('.', ',')}`;
-      comSemanaEl.className = totalSemana >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
-
-      document.getElementById('qtdMes').innerText = `(${qtdMes} pedidos)`;
-      const comMesEl = document.getElementById('comissaoMensal');
-      comMesEl.innerText = `R$ ${totalMes.toFixed(2).replace('.', ',')}`;
-      comMesEl.className = totalMes >= 0 ? 'text-lg md:text-xl font-black text-amber-300' : 'text-lg md:text-xl font-black text-red-300';
+      comissaoEl.className = totalComissaoGeral >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
 
       if (dataUltimoFechamento) {
         const d = new Date(dataUltimoFechamento);
@@ -436,8 +387,9 @@
       } else if (isLucas) {
         comissaoVal = -faturamentoEstimado;
       } else {
-        const diferencaPorKg = precoPraticado - PRECO_REFERENCIA;
-        comissaoVal = diferencaPorKg * pesoEstimadoKg;
+        // Regra exata: Tudo que vender acima do preço base (R$ 32,00) vira comissão por quilo
+        const comissaoPorKg = precoPraticado - PRECO_BASE;
+        comissaoVal = comissaoPorKg * pesoEstimadoKg;
       }
 
       return { totalPecas, pesoEstimadoKg, faturamentoEstimado, comissaoVal, tipo, tipoVenda };
@@ -462,11 +414,10 @@
       document.getElementById(id).addEventListener('change', atualizarTelaCalculo);
     });
 
-    // FUNÇÃO PARA LIMPAR O FORMULÁRIO APÓS SALVAR
     function limparFormulario() {
       document.getElementById('editandoId').value = '';
       document.getElementById('isLucas').checked = false;
-      document.getElementById('selectClienteSalvo.value') = '';
+      document.getElementById('selectClienteSalvo').value = '';
       document.getElementById('razao').value = '';
       document.getElementById('fantasia').value = '';
       document.getElementById('cnpj').value = '';
@@ -642,7 +593,7 @@
         qtdInput,
         totalPecas: res.totalPecas,
         pesoEstimadoKg: res.pesoEstimadoKg,
-        precoTabela: PRECO_REFERENCIA,
+        precoBase: PRECO_BASE,
         precoPraticado,
         totalVenda: res.faturamentoEstimado,
         comissao: res.comissaoVal,
@@ -675,7 +626,6 @@
           alert('✅ Pedido salvo na nuvem, texto copiado para o WhatsApp e formulário limpo!');
         }
 
-        // Zera e limpa os campos para o próximo pedido
         limparFormulario();
       } catch (e) {
         console.error("Erro ao salvar: ", e);
@@ -701,7 +651,7 @@
         textoRelatorio += `- ${p.fantasia}: ~${p.pesoEstimadoKg}kg | Com. Est.: R$ ${p.comissao.toFixed(2).replace('.', ',')}\n`;
       });
 
-      textoRelatorio += `\n💰 *TOTAL ESTIMADO A RECEBER:* R$ ${totalGeralComissao.toFixed(2).replace('.', ',')}`;
+      textoRelatorio += `\n💰 *TOTAL LÍQUIDO A RECEBER:* R$ ${totalGeralComissao.toFixed(2).replace('.', ',')}`;
       relatorioTextoCopiar = textoRelatorio;
 
       document.getElementById('tituloFechamento').innerText = `Pedidos em aberto (${pendentes.length} itens):`;
