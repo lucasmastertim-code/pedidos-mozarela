@@ -63,15 +63,9 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">CNPJ</label>
-              <input id="cnpj" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-600 mb-1">Contato/Tel</label>
-              <input id="contato" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
-            </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">CNPJ</label>
+            <input id="cnpj" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
           </div>
 
           <div>
@@ -166,6 +160,11 @@
             </div>
           </div>
 
+          <div id="bannerEdicao" class="hidden mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex justify-between items-center gap-2">
+            <span>✏️ Editando pedido de <b id="nomeEdicao"></b></span>
+            <button id="btnCancelarEdicao" class="bg-white border border-blue-300 text-blue-800 px-2 py-1 rounded font-bold">Cancelar edição</button>
+          </div>
+          <input type="hidden" id="editandoId" value="" />
           <button id="btnSalvarECopiar" class="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl shadow transition mt-4">
             📋 Copiar Texto do WhatsApp e Salvar na Planilha
           </button>
@@ -398,7 +397,6 @@
           opt.textContent = `${c.razao} (${c.fantasia || ''})`;
           opt.dataset.fantasia = c.fantasia || '';
           opt.dataset.cnpj = c.cnpj || '';
-          opt.dataset.contato = c.contato || '';
           opt.dataset.endereco = c.endereco || '';
           opt.dataset.pgto = c.pgto || '';
           opt.dataset.nf = c.nf || 'Com NF.';
@@ -412,7 +410,6 @@
       $('razao').value = opt.value;
       $('fantasia').value = opt.dataset.fantasia;
       $('cnpj').value = opt.dataset.cnpj;
-      $('contato').value = opt.dataset.contato;
       $('endereco').value = opt.dataset.endereco;
       $('pgto').value = opt.dataset.pgto;
       $('nf').value = opt.dataset.nf;
@@ -463,9 +460,12 @@
     });
 
     function limparFormulario() {
+      $('editandoId').value = '';
+      $('bannerEdicao').classList.add('hidden');
+      $('btnSalvarECopiar').innerText = '📋 Copiar Texto do WhatsApp e Salvar na Planilha';
       $('isLucas').checked = false;
       $('selectClienteSalvo').value = '';
-      ['razao', 'fantasia', 'cnpj', 'contato', 'endereco', 'dataEntrega', 'horarioEntrega', 'pgto'].forEach(id => $(id).value = '');
+      ['razao', 'fantasia', 'cnpj', 'endereco', 'dataEntrega', 'horarioEntrega', 'pgto'].forEach(id => $(id).value = '');
       $('nf').value = 'Com NF.';
       $('tipoVenda').value = 'Venda Normal';
       $('tipoEmbalagem').value = 'pecas';
@@ -485,7 +485,6 @@
       let t = `🧀 *PEDIDO - MUÇARELA* 🧀\n\n`;
       t += `🏢 *Cliente:* ${p.razao} (${p.fantasia || p.razao})\n`;
       if (p.cnpj) t += `📄 *CNPJ:* ${p.cnpj}\n`;
-      if (p.contato) t += `📞 *Contato:* ${p.contato}\n`;
       if (p.endereco) t += `📍 *Endereço:* ${p.endereco}\n`;
       if (p.dataEntrega || p.horarioEntrega) {
         const data = formatarData(p.dataEntrega) || 'Data a combinar';
@@ -503,6 +502,40 @@
       await copiarTexto(montarTextoZap(p));
       alert(`Texto do pedido de "${p.fantasia || p.razao}" copiado!`);
     };
+
+    window.editarPedido = function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p) return;
+      if (p.fechado) { alert('Pedidos de períodos já fechados não podem ser editados.'); return; }
+
+      $('editandoId').value = p.id;
+      $('razao').value = p.razao;
+      $('fantasia').value = p.fantasia;
+      $('cnpj').value = p.cnpj;
+      $('endereco').value = p.endereco;
+      $('dataEntrega').value = p.dataEntrega;
+      $('horarioEntrega').value = p.horarioEntrega;
+      $('pgto').value = p.pgto;
+      $('nf').value = p.nf;
+      $('tipoVenda').value = p.tipoVenda;
+      $('tipoEmbalagem').value = p.tipoEmbalagem;
+      $('qtdPecas').value = p.qtdInput;
+      $('precoPraticado').value = p.precoPraticado;
+
+      // O app não guarda o "pedido próprio" na planilha: deduz pelo valor da comissão
+      const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
+      const fat = p.precoPraticado * pecas * KG_POR_PECA;
+      $('isLucas').checked = p.tipoVenda !== 'Bonificação' && fat > 0 && Math.abs(p.comissao + fat) < 0.01;
+
+      $('nomeEdicao').innerText = p.fantasia || p.razao;
+      $('bannerEdicao').classList.remove('hidden');
+      $('btnSalvarECopiar').innerText = '💾 Salvar Alterações e Copiar Texto';
+      atualizarTelaCalculo();
+      mudarAba('novo');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    $('btnCancelarEdicao').addEventListener('click', limparFormulario);
 
     window.excluirPedido = async function(id) {
       const p = todosPedidos.find(item => String(item.id) === String(id));
@@ -572,6 +605,7 @@
             <td class="p-2.5 text-gray-600">${entrega} (${esc(p.horarioEntrega || 'N/I')})</td>
             <td class="p-2.5">${badgeStatus}</td>
             <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
+              ${p.fechado ? '' : `<button onclick="editarPedido('${idSeguro}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>`}
               <button onclick="copiarPedidoZap('${idSeguro}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
               <button onclick="excluirPedido('${idSeguro}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px]">🗑️</button>
             </td>
@@ -591,27 +625,36 @@
     // ---------- SALVAR NA PLANILHA + COPIAR ----------
     $('btnSalvarECopiar').addEventListener('click', async () => {
       const btn = $('btnSalvarECopiar');
-      const razao = $('razao').value.trim();
-      const fantasia = $('fantasia').value.trim() || razao;
+      const editandoId = $('editandoId').value;
       const qtdInput = parseFloat($('qtdPecas').value) || 0;
       const precoPraticado = parseFloat($('precoPraticado').value) || 0;
 
-      if (!razao || !precoPraticado) {
-        alert('Preencha pelo menos a Razão Social e o Preço Praticado.');
-        return;
+      // Todos os campos são obrigatórios
+      const obrigatorios = [
+        ['razao', 'Razão Social / Cliente'], ['fantasia', 'Nome Fantasia'], ['cnpj', 'CNPJ'],
+        ['endereco', 'Endereço Completo'], ['dataEntrega', 'Dia da Entrega'],
+        ['horarioEntrega', 'Horário de Entrega'], ['pgto', 'Pagamento']
+      ];
+      for (const [id, nome] of obrigatorios) {
+        if (!$(id).value.trim()) {
+          alert(`Preencha o campo "${nome}".`);
+          $(id).focus();
+          return;
+        }
       }
-      if (qtdInput <= 0) {
-        alert('Informe a quantidade do pedido.');
-        return;
-      }
+      if (qtdInput <= 0) { alert('Informe a quantidade do pedido.'); $('qtdPecas').focus(); return; }
+      if (precoPraticado <= 0) { alert('Informe o Preço Praticado.'); $('precoPraticado').focus(); return; }
 
       const res = calcularDadosAtuais();
+      const original = editandoId ? todosPedidos.find(x => String(x.id) === String(editandoId)) : null;
+
       const pedido = {
-        id: Date.now(),
-        dataHora: new Date().toISOString(),
-        razao, fantasia,
+        id: editandoId || Date.now(),
+        dataHora: original ? original.dataHora : new Date().toISOString(),
+        razao: $('razao').value.trim(),
+        fantasia: $('fantasia').value.trim(),
         cnpj: $('cnpj').value.trim(),
-        contato: $('contato').value.trim(),
+        contato: '',
         endereco: $('endereco').value.trim(),
         dataEntrega: $('dataEntrega').value,
         horarioEntrega: $('horarioEntrega').value.trim(),
@@ -630,16 +673,18 @@
 
       try {
         await copiarTexto(montarTextoZap(pedido));
-        await postPlanilha({ action: 'salvar', ...pedido });
-        alert('✅ Pedido salvo na planilha e texto copiado para o WhatsApp!');
+        await postPlanilha({ action: editandoId ? 'editar' : 'salvar', ...pedido });
+        alert(editandoId
+          ? '✅ Pedido atualizado na planilha e texto copiado para o WhatsApp!'
+          : '✅ Pedido salvo na planilha e texto copiado para o WhatsApp!');
         limparFormulario();
         carregarDadosPlanilha();
       } catch (e) {
         console.error("Erro ao salvar:", e);
         alert('❌ Erro ao salvar na planilha: ' + e.message + '\n\nO texto do WhatsApp já foi copiado, mas o pedido NÃO foi salvo.');
+        btn.innerText = textoOriginal;
       } finally {
         btn.disabled = false;
-        btn.innerText = textoOriginal;
       }
     });
 
