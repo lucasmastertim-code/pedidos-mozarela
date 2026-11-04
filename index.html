@@ -211,12 +211,20 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
           <div>
             <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
-            <p class="text-xs text-gray-500">Consulte, filtre, copie para o WhatsApp, edite ou exclua pedidos</p>
+            <p class="text-xs text-gray-500">Consulte, filtre por data, copie para o WhatsApp, edite ou exclua</p>
           </div>
           
-          <!-- FILTROS DO HISTÓRICO -->
-          <div class="flex flex-wrap gap-2 w-full md:w-auto">
+          <!-- FILTROS DO HISTÓRICO (Com Filtro de Data Início e Fim) -->
+          <div class="flex flex-wrap gap-2 w-full md:w-auto items-center">
             <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
+            <div class="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 border rounded-lg p-1">
+              <span>De:</span>
+              <input id="filtroDataInicio" type="date" class="outline-none bg-transparent text-xs" />
+            </div>
+            <div class="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 border rounded-lg p-1">
+              <span>Até:</span>
+              <input id="filtroDataFim" type="date" class="outline-none bg-transparent text-xs" />
+            </div>
             <select id="filtroTipoVenda" class="border rounded-lg p-2 text-xs bg-white">
               <option value="">Todos os Tipos</option>
               <option value="Venda Normal">Venda Normal</option>
@@ -254,18 +262,18 @@
 
   </div>
 
-  <!-- SCRIPT JS + FIREBASE -->
+  <!-- SCRIPT JS + FIREBASE (Configuração idêntica Top Fish) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBve65hr7bd-APMwIyjRV9OrCL42QEy468",
-      authDomain: "pedidos-mozarela.firebaseapp.com",
-      projectId: "pedidos-mozarela",
-      storageBucket: "pedidos-mozarela.firebasestorage.app",
-      messagingSenderId: "635651460504",
-      appId: "1:635651460504:web:43a78ec7bdc44c6e2d6fed"
+      apiKey: "AIzaSyDVteqgaRg77Xku6g-QzNpwPkDEZ-19MI0",
+      authDomain: "pedidos-top-fish.firebaseapp.com",
+      projectId: "pedidos-top-fish",
+      storageBucket: "pedidos-top-fish.firebasestorage.app",
+      messagingSenderId: "359566876473",
+      appId: "1:359566876473:web:c582ae4d4b8c2fb319d2e8"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -295,6 +303,7 @@
       }
     };
 
+    // Usando a mesma coleção unificada para sincronizar perfeitamente no celular e PC
     onSnapshot(collection(db, "pedidos_mucarela"), (snapshot) => {
       todosPedidos = [];
       snapshot.forEach(doc => {
@@ -387,7 +396,6 @@
       } else if (isLucas) {
         comissaoVal = -faturamentoEstimado;
       } else {
-        // Regra exata: Tudo que vender acima do preço base (R$ 32,00) vira comissão por quilo
         const comissaoPorKg = precoPraticado - PRECO_BASE;
         comissaoVal = comissaoPorKg * pesoEstimadoKg;
       }
@@ -502,6 +510,8 @@
     function renderizarHistorico() {
       const tbody = document.getElementById('tabelaHistorico');
       const busca = document.getElementById('filtroBusca').value.toLowerCase();
+      const dataInicio = document.getElementById('filtroDataInicio').value;
+      const dataFim = document.getElementById('filtroDataFim').value;
       const tipoVendaFiltro = document.getElementById('filtroTipoVenda').value;
       const statusFiltro = document.getElementById('filtroStatus').value;
 
@@ -513,7 +523,14 @@
         if (statusFiltro === 'abertos') matchStatus = !p.fechado;
         if (statusFiltro === 'fechados') matchStatus = p.fechado;
 
-        return matchBusca && matchTipo && matchStatus;
+        let matchData = true;
+        if (p.dataHora) {
+          const dataPedidoStr = p.dataHora.split('T')[0];
+          if (dataInicio && dataPedidoStr < dataInicio) matchData = false;
+          if (dataFim && dataPedidoStr > dataFim) matchData = false;
+        }
+
+        return matchBusca && matchTipo && matchStatus && matchData;
       });
 
       if (filtrados.length === 0) {
@@ -552,12 +569,12 @@
       tbody.innerHTML = html;
     }
 
-    ['filtroBusca', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
+    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
       document.getElementById(id).addEventListener('input', renderizarHistorico);
       document.getElementById(id).addEventListener('change', renderizarHistorico);
     });
 
-    // SALVAR OU ATUALIZAR NA NUVEM E LIMPAR FORMULÁRIO
+    // SALVAR OU ATUALIZAR NA NUVEM E LIMPAR FORMULÁRIO AUTOMATICAMENTE
     document.getElementById('btnSalvarECopiar').addEventListener('click', async () => {
       const editandoId = document.getElementById('editandoId').value;
       const isLucas = document.getElementById('isLucas').checked;
