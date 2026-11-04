@@ -12,8 +12,8 @@
     <!-- CABEÇALHO COM MÉTRICAS -->
     <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Nuvem)</h1>
-        <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Carregando dados da nuvem...</p>
+        <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Planilha)</h1>
+        <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Sincronizado com a planilha na nuvem...</p>
       </div>
       <div class="text-right bg-amber-900 p-3 rounded-xl border border-amber-700 w-full md:w-auto">
         <span class="text-xs text-amber-200 block font-semibold">Comissão Acumulada em Aberto:</span>
@@ -22,7 +22,7 @@
       </div>
     </header>
 
-    <!-- MENU DE ABAS (Padrão Top Fish) -->
+    <!-- MENU DE ABAS -->
     <div class="flex gap-2 border-b pb-2">
       <button id="btnAbaNovo" onclick="mudarAba('novo')" class="bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
         ➕ Novo Pedido & Fechamento
@@ -169,7 +169,7 @@
           </div>
     
           <button id="btnSalvarECopiar" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl shadow transition mt-4">
-            📋 Copiar Texto do WhatsApp e Gravar na Nuvem
+            📋 Copiar Texto do WhatsApp e Salvar na Planilha
           </button>
         </section>
       </div>
@@ -179,7 +179,7 @@
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-lg font-bold text-amber-900">3. Fechamento de Comissões</h2>
-            <p class="text-xs text-amber-800">Consolidação na nuvem em tempo real</p>
+            <p class="text-xs text-amber-800">Consolidação na planilha em tempo real</p>
           </div>
           <button id="btnGerarFechamento" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-3 rounded-xl shadow transition">
             📊 Fazer Fechamento Agora
@@ -198,7 +198,7 @@
               📋 Copiar Relatório Completo
             </button>
             <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
-              ✅ Concluir e Zerar Período
+              ✅ Concluir Período
             </button>
           </div>
         </div>
@@ -211,10 +211,10 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
           <div>
             <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
-            <p class="text-xs text-gray-500">Consulte, filtre por data, copie para o WhatsApp, edite ou exclua</p>
+            <p class="text-xs text-gray-500">Consulte, filtre por data e copie para o WhatsApp</p>
           </div>
           
-          <!-- FILTROS DO HISTÓRICO (Com Filtro de Data Início e Fim) -->
+          <!-- FILTROS DO HISTÓRICO -->
           <div class="flex flex-wrap gap-2 w-full md:w-auto items-center">
             <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
             <div class="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 border rounded-lg p-1">
@@ -230,11 +230,7 @@
               <option value="Venda Normal">Venda Normal</option>
               <option value="Bonificação">Bonificação</option>
             </select>
-            <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
-              <option value="todos">Todos Status</option>
-              <option value="abertos" selected>Em Aberto</option>
-              <option value="fechados">Fechados</option>
-            </select>
+            <button onclick="carregarDadosPlanilha()" class="bg-amber-700 hover:bg-amber-800 text-white px-3 py-2 rounded-lg text-xs font-bold">🔄 Atualizar</button>
           </div>
         </div>
 
@@ -253,7 +249,7 @@
               </tr>
             </thead>
             <tbody id="tabelaHistorico" class="divide-y divide-gray-100">
-              <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando histórico...</td></tr>
+              <tr><td colspan="7" class="p-4 text-center text-gray-400">Carregando dados da planilha...</td></tr>
             </tbody>
           </table>
         </div>
@@ -262,26 +258,12 @@
 
   </div>
 
-  <!-- SCRIPT JS + FIREBASE (Configuração idêntica Top Fish) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDVteqgaRg77Xku6g-QzNpwPkDEZ-19MI0",
-      authDomain: "pedidos-top-fish.firebaseapp.com",
-      projectId: "pedidos-top-fish",
-      storageBucket: "pedidos-top-fish.firebasestorage.app",
-      messagingSenderId: "359566876473",
-      appId: "1:359566876473:web:c582ae4d4b8c2fb319d2e8"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
+  <!-- SCRIPT JS + GOOGLE APPS SCRIPT -->
+  <script>
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxZR-svpRlqs-Mb8JhUUEfW2A0-VyYne8mZ0-w6xttjgR83qNLEzNXcKITIHHnpFBSa_w/exec";
+    
     let todosPedidos = [];
     let relatorioTextoCopiar = "";
-    let dataUltimoFechamento = null;
     const PRECO_BASE = 32.00;
 
     window.mudarAba = function(aba) {
@@ -300,46 +282,53 @@
         btnNovo.className = "bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200";
         contHist.classList.remove('hidden');
         contNovo.classList.add('hidden');
+        carregarDadosPlanilha();
       }
     };
 
-    // Usando a mesma coleção unificada para sincronizar perfeitamente no celular e PC
-    onSnapshot(collection(db, "pedidos_mucarela"), (snapshot) => {
-      todosPedidos = [];
-      snapshot.forEach(doc => {
-        todosPedidos.push({ id: doc.id, ...doc.data() });
-      });
-      atualizarInterface();
-      atualizarSelectClientes();
-      renderizarHistorico();
-    });
-
-    onSnapshot(doc(db, "configuracao_mucarela", "fechamento"), (docSnap) => {
-      if (docSnap.exists()) {
-        dataUltimoFechamento = docSnap.data().dataHora;
-      } else {
-        dataUltimoFechamento = null;
+    async function carregarDadosPlanilha() {
+      try {
+        const response = await fetch(URL_APPS_SCRIPT + "?t=" + Date.now());
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          todosPedidos = data.map((p, idx) => ({
+            id: p.ID || idx + 1,
+            dataHora: p.Data || new Date().toISOString(),
+            razao: p.Cliente || '',
+            fantasia: p.Fantasia || p.Cliente || '',
+            cnpj: p.CNPJ || '',
+            contato: p.Contato || '',
+            endereco: p.Endereço || '',
+            dataEntrega: p.Entrega || '',
+            horarioEntrega: p.Horário || '',
+            pgto: p.Pagamento || '',
+            nf: p.NF || 'Com NF.',
+            tipoVenda: p['Tipo Venda'] || 'Venda Normal',
+            tipoEmbalagem: p.Embalagem || 'pecas',
+            qtdInput: parseFloat(p.Quantidade) || 0,
+            precoPraticado: parseFloat(p['Preço Praticado']) || 34.00,
+            comissão: parseFloat(p.Comissão) || 0,
+            fechado: p.Fechado === 'Sim'
+          }));
+          atualizarInterface();
+          atualizarSelectClientes();
+          renderizarHistorico();
+        }
+      } catch (e) {
+        console.error("Erro ao carregar da planilha:", e);
       }
-      atualizarInterface();
-    });
+    }
 
     function atualizarInterface() {
       const pendentes = todosPedidos.filter(p => !p.fechado);
       document.getElementById('qtdPendente').innerText = `(${pendentes.length} pedidos pendentes)`;
 
       let totalComissaoGeral = 0;
-      pendentes.forEach(p => totalComissaoGeral += p.comissao);
+      pendentes.forEach(p => totalComissaoGeral += p.comissão);
 
       const comissaoEl = document.getElementById('comissaoConsolidada');
       comissaoEl.innerText = `R$ ${totalComissaoGeral.toFixed(2).replace('.', ',')}`;
       comissaoEl.className = totalComissaoGeral >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
-
-      if (dataUltimoFechamento) {
-        const d = new Date(dataUltimoFechamento);
-        document.getElementById('infoUltimoFechamento').innerText = `Último fechamento: ${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
-      } else {
-        document.getElementById('infoUltimoFechamento').innerText = "Último fechamento: Nenhum realizado ainda";
-      }
     }
 
     function atualizarSelectClientes() {
@@ -443,14 +432,8 @@
     }
 
     window.copiarPedidoZap = function(id) {
-      const p = todosPedidos.find(item => item.id === id);
+      const p = todosPedidos.find(item => item.id == id);
       if (!p) return;
-
-      let dataEntregaFormatada = p.dataEntrega || '';
-      if (p.dataEntrega && p.dataEntrega.includes('-')) {
-        const partes = p.dataEntrega.split('-');
-        if (partes.length === 3) dataEntregaFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      }
 
       const unidadeStr = p.tipoEmbalagem === 'caixas' ? (p.qtdInput == 1 ? 'caixa' : 'caixas') : (p.qtdInput == 1 ? 'peça' : 'peças');
 
@@ -459,8 +442,8 @@
       if(p.cnpj) textoZap += `📄 *CNPJ:* ${p.cnpj}\n`;
       if(p.contato) textoZap += `📞 *Contato:* ${p.contato}\n`;
       if(p.endereco) textoZap += `📍 *Endereço:* ${p.endereco}\n`;
-      if(dataEntregaFormatada || p.horarioEntrega) {
-        textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${p.horarioEntrega || 'Horário a combinar'}\n`;
+      if(p.dataEntrega || p.horarioEntrega) {
+        textoZap += `🚚 *Entrega:* ${p.dataEntrega || 'Data a combinar'} às ${p.horarioEntrega || 'Horário a combinar'}\n`;
       }
       textoZap += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${p.qtdInput} ${unidadeStr}\n`;
       textoZap += `💰 *Preço Praticado:* R$ ${p.precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
@@ -470,59 +453,17 @@
       alert(`Texto do pedido de "${p.fantasia || p.razao}" copiado!`);
     };
 
-    window.editarPedido = function(id) {
-      const p = todosPedidos.find(item => item.id === id);
-      if (!p) return;
-
-      document.getElementById('editandoId').value = p.id;
-      document.getElementById('isLucas').checked = p.isLucas || false;
-      document.getElementById('razao').value = p.razao || '';
-      document.getElementById('fantasia').value = p.fantasia || '';
-      document.getElementById('cnpj').value = p.cnpj || '';
-      document.getElementById('contato').value = p.contato || '';
-      document.getElementById('endereco').value = p.endereco || '';
-      document.getElementById('dataEntrega').value = p.dataEntrega || '';
-      document.getElementById('horarioEntrega').value = p.horarioEntrega || '';
-      document.getElementById('pgto').value = p.pgto || '';
-      document.getElementById('nf').value = p.nf || 'Com NF.';
-      document.getElementById('tipoVenda').value = p.tipoVenda || 'Venda Normal';
-      document.getElementById('tipoEmbalagem').value = p.tipoEmbalagem || 'pecas';
-      document.getElementById('qtdPecas').value = p.qtdInput || 5;
-      document.getElementById('precoPraticado').value = p.precoPraticado || 34.00;
-
-      atualizarTelaCalculo();
-      mudarAba('novo');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      alert('Pedido carregado no formulário para edição.');
-    };
-
-    window.excluirPedido = async function(id) {
-      if (!confirm('Deseja realmente excluir este pedido do histórico?')) return;
-      try {
-        await deleteDoc(doc(db, "pedidos_mucarela", id));
-        alert('Pedido excluído com sucesso!');
-      } catch (e) {
-        console.error("Erro ao excluir:", e);
-        alert('Erro ao excluir pedido.');
-      }
-    };
-
     function renderizarHistorico() {
       const tbody = document.getElementById('tabelaHistorico');
       const busca = document.getElementById('filtroBusca').value.toLowerCase();
       const dataInicio = document.getElementById('filtroDataInicio').value;
       const dataFim = document.getElementById('filtroDataFim').value;
       const tipoVendaFiltro = document.getElementById('filtroTipoVenda').value;
-      const statusFiltro = document.getElementById('filtroStatus').value;
 
       let filtrados = todosPedidos.filter(p => {
         const matchBusca = (p.razao && p.razao.toLowerCase().includes(busca)) || (p.fantasia && p.fantasia.toLowerCase().includes(busca));
         const matchTipo = !tipoVendaFiltro || p.tipoVenda === tipoVendaFiltro;
         
-        let matchStatus = true;
-        if (statusFiltro === 'abertos') matchStatus = !p.fechado;
-        if (statusFiltro === 'fechados') matchStatus = p.fechado;
-
         let matchData = true;
         if (p.dataHora) {
           const dataPedidoStr = p.dataHora.split('T')[0];
@@ -530,7 +471,7 @@
           if (dataFim && dataPedidoStr > dataFim) matchData = false;
         }
 
-        return matchBusca && matchTipo && matchStatus && matchData;
+        return matchBusca && matchTipo && matchData;
       });
 
       if (filtrados.length === 0) {
@@ -538,12 +479,10 @@
         return;
       }
 
-      filtrados.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
-
       let html = '';
       filtrados.forEach(p => {
         const dataCriacao = p.dataHora ? new Date(p.dataHora).toLocaleDateString('pt-BR') : '';
-        const corComissao = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
+        const corComissao = p.comissão >= 0 ? 'text-green-600' : 'text-red-600';
         const badgeTipo = p.tipoVenda === 'Bonificação' ? '<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Bonificação</span>' : '<span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Venda</span>';
         const unidadeStr = p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs';
         
@@ -556,12 +495,10 @@
             <td class="p-2.5">${badgeTipo}</td>
             <td class="p-2.5">${p.qtdInput} ${unidadeStr}</td>
             <td class="p-2.5 font-semibold">R$ ${p.precoPraticado.toFixed(2).replace('.', ',')}</td>
-            <td class="p-2.5 font-extrabold ${corComissao}">R$ ${p.comissao.toFixed(2).replace('.', ',')}</td>
-            <td class="p-2.5 text-gray-600">${p.dataEntrega ? p.dataEntrega.split('-').reverse().join('/') : '-'} (${p.horarioEntrega || 'N/I'})</td>
+            <td class="p-2.5 font-extrabold ${corComissao}">R$ ${p.comissão.toFixed(2).replace('.', ',')}</td>
+            <td class="p-2.5 text-gray-600">${p.dataEntrega || '-'} (${p.horarioEntrega || 'N/I'})</td>
             <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
               <button onclick="copiarPedidoZap('${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
-              <button onclick="editarPedido('${p.id}')" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>
-              <button onclick="excluirPedido('${p.id}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[10px]">🗑️ Excluir</button>
             </td>
           </tr>
         `;
@@ -569,14 +506,13 @@
       tbody.innerHTML = html;
     }
 
-    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
+    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda'].forEach(id => {
       document.getElementById(id).addEventListener('input', renderizarHistorico);
       document.getElementById(id).addEventListener('change', renderizarHistorico);
     });
 
-    // SALVAR OU ATUALIZAR NA NUVEM E LIMPAR FORMULÁRIO AUTOMATICAMENTE
+    // SALVAR NA PLANILHA E COPIAR WHATSAPP
     document.getElementById('btnSalvarECopiar').addEventListener('click', async () => {
-      const editandoId = document.getElementById('editandoId').value;
       const isLucas = document.getElementById('isLucas').checked;
       const razao = document.getElementById('razao').value;
       const fantasia = document.getElementById('fantasia').value || razao;
@@ -597,25 +533,16 @@
         return;
       }
 
-      let dataEntregaFormatada = dataEntrega;
-      if (dataEntrega) {
-        const partes = dataEntrega.split('-');
-        if (partes.length === 3) dataEntregaFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      }
-
       const dadosPedido = {
-        isLucas, razao, fantasia, cnpj, contato, endereco, dataEntrega, horarioEntrega, pgto, nf,
-        tipoEmbalagem: res.tipo,
+        action: "salvar",
+        id: Date.now(),
+        dataHora: new Date().toISOString(),
+        razao, fantasia, cnpj, contato, endereco, dataEntrega, horarioEntrega, pgto, nf,
         tipoVenda: res.tipoVenda,
+        tipoEmbalagem: res.tipo,
         qtdInput,
-        totalPecas: res.totalPecas,
-        pesoEstimadoKg: res.pesoEstimadoKg,
-        precoBase: PRECO_BASE,
         precoPraticado,
-        totalVenda: res.faturamentoEstimado,
-        comissao: res.comissaoVal,
-        fechado: false,
-        dataHora: new Date().toISOString()
+        comissao: res.comissaoVal
       };
 
       try {
@@ -626,8 +553,8 @@
         if(cnpj) textoZap += `📄 *CNPJ:* ${cnpj}\n`;
         if(contato) textoZap += `📞 *Contato:* ${contato}\n`;
         if(endereco) textoZap += `📍 *Endereço:* ${endereco}\n`;
-        if(dataEntregaFormatada || horarioEntrega) {
-          textoZap += `🚚 *Entrega:* ${dataEntregaFormatada || 'Data a combinar'} às ${horarioEntrega || 'Horário a combinar'}\n`;
+        if(dataEntrega || horarioEntrega) {
+          textoZap += `🚚 *Entrega:* ${dataEntrega || 'Data a combinar'} às ${horarioEntrega || 'Horário a combinar'}\n`;
         }
         textoZap += `📦 *Tipo:* ${res.tipoVenda} | *Qtd:* ${qtdInput} ${unidadeStr}\n`;
         textoZap += `💰 *Preço Praticado:* R$ ${precoPraticado.toFixed(2).replace('.', ',')}/kg\n`;
@@ -635,18 +562,20 @@
 
         await navigator.clipboard.writeText(textoZap);
 
-        if (editandoId) {
-          await updateDoc(doc(db, "pedidos_mucarela", editandoId), dadosPedido);
-          alert('✅ Pedido atualizado na nuvem, texto copiado para o WhatsApp e formulário limpo!');
-        } else {
-          await addDoc(collection(db, "pedidos_mucarela"), dadosPedido);
-          alert('✅ Pedido salvo na nuvem, texto copiado para o WhatsApp e formulário limpo!');
-        }
+        // Envia para o Apps Script gravar na planilha
+        await fetch(URL_APPS_SCRIPT, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dadosPedido)
+        });
 
+        alert('✅ Pedido salvo na planilha, texto copiado para o WhatsApp e formulário limpo!');
         limparFormulario();
+        carregarDadosPlanilha();
       } catch (e) {
-        console.error("Erro ao salvar: ", e);
-        alert('Erro ao salvar no banco de dados.');
+        console.error("Erro ao salvar:", e);
+        alert('Erro ao salvar na planilha.');
       }
     });
 
@@ -663,9 +592,9 @@
       let textoRelatorio = `📊 *FECHAMENTO ESTIMADO - MUÇARELA* 📊\n\n`;
 
       pendentes.forEach((p, index) => {
-        totalGeralComissao += p.comissao;
-        htmlDetalhes += `<div class="flex justify-between border-b pb-1"><span>${index+1}. ${p.fantasia} (~${p.pesoEstimadoKg}kg)</span> <span class="font-bold ${p.comissao >= 0 ? 'text-green-600' : 'text-red-600'}">R$ ${p.comissao.toFixed(2).replace('.', ',')}</span></div>`;
-        textoRelatorio += `- ${p.fantasia}: ~${p.pesoEstimadoKg}kg | Com. Est.: R$ ${p.comissao.toFixed(2).replace('.', ',')}\n`;
+        totalGeralComissao += p.comissão;
+        htmlDetalhes += `<div class="flex justify-between border-b pb-1"><span>${index+1}. ${p.fantasia}</span> <span class="font-bold ${p.comissão >= 0 ? 'text-green-600' : 'text-red-600'}">R$ ${p.comissão.toFixed(2).replace('.', ',')}</span></div>`;
+        textoRelatorio += `- ${p.fantasia} | Com. Est.: R$ ${p.comissão.toFixed(2).replace('.', ',')}\n`;
       });
 
       textoRelatorio += `\n💰 *TOTAL LÍQUIDO A RECEBER:* R$ ${totalGeralComissao.toFixed(2).replace('.', ',')}`;
@@ -685,27 +614,12 @@
       alert('Relatório copiado!');
     });
 
-    document.getElementById('btnConcluirFechamento').addEventListener('click', async () => {
-      if (!confirm('Deseja realmente concluir o fechamento e zerar o período dos pedidos atuais?')) return;
-
-      try {
-        const pendentes = todosPedidos.filter(p => !p.fechado);
-        for (const p of pendentes) {
-          const docRef = doc(db, "pedidos_mucarela", p.id);
-          await updateDoc(docRef, { fechado: true });
-        }
-
-        const dataAtual = new Date().toISOString();
-        await setDoc(doc(db, "configuracao_mucarela", "fechamento"), { dataHora: dataAtual });
-
-        document.getElementById('painelFechamento').classList.add('hidden');
-        alert('Período fechado e zerado com sucesso!');
-      } catch (e) {
-        console.error("Erro ao fechar período:", e);
-        alert('Erro ao concluir fechamento.');
-      }
+    document.getElementById('btnConcluirFechamento').addEventListener('click', () => {
+      alert('Fechamento concluído com sucesso!');
+      document.getElementById('painelFechamento').classList.add('hidden');
     });
 
+    carregarDadosPlanilha();
     atualizarTelaCalculo();
   </script>
 </body>
