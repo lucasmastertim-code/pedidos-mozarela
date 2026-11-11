@@ -195,7 +195,7 @@
               📋 Copiar Relatório Completo
             </button>
             <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
-              ✅ Concluir Período
+              ✅ Fechar Todos em Aberto
             </button>
           </div>
         </div>
@@ -263,12 +263,23 @@
   <script>
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxZR-svpRlqs-Mb8JhUUEfW2A0-VyYne8mZ0-w6xttjgR83qNLEzNXcKITIHHnpFBSa_w/exec";
 
-    const PRECO_BASE = 32.00;
+    // ===== CONFIGURAÇÃO DESTA CÓPIA =====
+    const PRECO_BASE = 32.00;            // vendedor: 33.00
+    const COMISSAO_GESTOR_KG = 0;        // só no link de acompanhamento: 1.00
+    const MOSTRAR_PEDIDO_PROPRIO = true; // vendedor: false
+    // ====================================
     const KG_POR_PECA = 4;
     const PECAS_POR_CAIXA = 8;
 
     let todosPedidos = [];
     let relatorioTextoCopiar = "";
+    const fmtNum = (n) => '#' + String(n || 0).padStart(3, '0');
+    function numerarPedidos() {
+      const asc = [...todosPedidos].sort((a, b) => String(a.dataHora).localeCompare(String(b.dataHora)) || String(a.id).localeCompare(String(b.id)));
+      let n = 0;
+      asc.forEach(p => { if (p.numero > 0) n = Math.max(n, p.numero); else p.numero = ++n; });
+    }
+    function proximoNumero() { return todosPedidos.reduce((m, p) => Math.max(m, p.numero || 0), 0) + 1; }
 
     // ---------- UTILITÁRIOS ----------
     const $ = (id) => document.getElementById(id);
@@ -356,9 +367,11 @@
           qtdInput: parseFloat(p.qtdInput ?? p.Quantidade) || 0,
           precoPraticado: parseFloat(p.precoPraticado ?? p['Preço Praticado']) || 0,
           comissao: parseFloat(p.comissao ?? p['Comissão']) || 0,
+          numero: parseInt(String(p.numPedido ?? p['Nº Pedido'] ?? '').replace(/\D/g, '')) || 0,
           fechado: (p.fechado ?? p.Fechado) === 'Sim'
         })).sort((a, b) => String(b.dataHora).localeCompare(String(a.dataHora)));
 
+        numerarPedidos();
         $('infoUltimoFechamento').innerText = `Sincronizado às ${new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
         atualizarInterface();
         atualizarSelectClientes();
@@ -377,6 +390,11 @@
       const el = $('comissaoConsolidada');
       el.innerText = brl(total);
       el.className = total >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
+      if (COMISSAO_GESTOR_KG > 0) {
+        const kg = pendentes.filter(p => p.tipoVenda !== 'Bonificação')
+          .reduce((s, p) => s + (p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput) * KG_POR_PECA, 0);
+        $('qtdPendente').innerText += ` | Sua comissão (R$ ${COMISSAO_GESTOR_KG}/kg): ${brl(kg * COMISSAO_GESTOR_KG)}`;
+      }
     }
 
     function atualizarSelectClientes() {
@@ -482,7 +500,7 @@
       const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
       const peso = pecas * KG_POR_PECA;
 
-      let t = `🧀 *PEDIDO - MUÇARELA* 🧀\n\n`;
+      let t = `🧀 *PEDIDO ${fmtNum(p.numero)} - MUÇARELA* 🧀\n\n`;
       t += `🏢 *Cliente:* ${p.razao} (${p.fantasia || p.razao})\n`;
       if (p.cnpj) t += `📄 *CNPJ:* ${p.cnpj}\n`;
       if (p.endereco) t += `📍 *Endereço:* ${p.endereco}\n`;
@@ -536,6 +554,18 @@
     };
 
     $('btnCancelarEdicao').addEventListener('click', limparFormulario);
+
+    window.fecharPedido = async function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p || p.fechado) return;
+      if (!confirm(`Fechar o pedido ${fmtNum(p.numero)} de "${p.fantasia || p.razao}" (${brl(p.comissao)})?\nUse quando o boleto compensar.`)) return;
+      try {
+        await postPlanilha({ action: 'fechar', ids: [p.id] });
+        await carregarDadosPlanilha();
+      } catch (e) {
+        alert('Erro ao fechar: ' + e.message);
+      }
+    };
 
     window.excluirPedido = async function(id) {
       const p = todosPedidos.find(item => String(item.id) === String(id));
@@ -595,7 +625,7 @@
         html += `
           <tr class="hover:bg-slate-50">
             <td class="p-2.5">
-              <div class="font-bold text-gray-800">${esc(p.fantasia || p.razao)}</div>
+              <div class="font-bold text-gray-800"><span class="text-amber-700">${fmtNum(p.numero)}</span> ${esc(p.fantasia || p.razao)}</div>
               <div class="text-[10px] text-gray-400">${dataCriacao}</div>
             </td>
             <td class="p-2.5">${badgeTipo}</td>
@@ -606,6 +636,7 @@
             <td class="p-2.5">${badgeStatus}</td>
             <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
               ${p.fechado ? '' : `<button onclick="editarPedido('${idSeguro}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>`}
+              ${p.fechado ? '' : `<button onclick="fecharPedido('${idSeguro}')" class="bg-slate-800 hover:bg-slate-900 text-white px-2 py-1 rounded text-[10px]">✅ Fechar</button>`}
               <button onclick="copiarPedidoZap('${idSeguro}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
               <button onclick="excluirPedido('${idSeguro}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px]">🗑️</button>
             </td>
@@ -650,6 +681,8 @@
 
       const pedido = {
         id: editandoId || Date.now(),
+        numero: original ? original.numero : proximoNumero(),
+        numPedido: original ? original.numero : proximoNumero(),
         dataHora: original ? original.dataHora : new Date().toISOString(),
         razao: $('razao').value.trim(),
         fantasia: $('fantasia').value.trim(),
@@ -703,8 +736,8 @@
       pendentes.forEach((p, i) => {
         total += p.comissao;
         const cor = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
-        html += `<div class="flex justify-between border-b pb-1"><span>${i + 1}. ${esc(p.fantasia)} (${new Date(p.dataHora).toLocaleDateString('pt-BR')})</span> <span class="font-bold ${cor}">${brl(p.comissao)}</span></div>`;
-        texto += `${i + 1}. ${p.fantasia} (${new Date(p.dataHora).toLocaleDateString('pt-BR')}) | Com. Est.: ${brl(p.comissao)}\n`;
+        html += `<div class="flex justify-between border-b pb-1"><span>${fmtNum(p.numero)} ${esc(p.fantasia)} (${new Date(p.dataHora).toLocaleDateString('pt-BR')})</span> <span class="font-bold ${cor}">${brl(p.comissao)}</span></div>`;
+        texto += `${fmtNum(p.numero)} ${p.fantasia} (${new Date(p.dataHora).toLocaleDateString('pt-BR')}) | Com. Est.: ${brl(p.comissao)}\n`;
       });
 
       texto += `\n💰 *TOTAL LÍQUIDO A RECEBER:* ${brl(total)}`;
@@ -742,6 +775,7 @@
       }
     });
 
+    if (!MOSTRAR_PEDIDO_PROPRIO) $('isLucas').closest('div').style.display = 'none';
     carregarDadosPlanilha();
     atualizarTelaCalculo();
   </script>
