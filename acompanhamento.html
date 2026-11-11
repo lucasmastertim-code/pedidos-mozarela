@@ -47,9 +47,8 @@
 
           <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
             <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
-            <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
-              <option value="">Selecione um cliente do histórico...</option>
-            </select>
+            <input id="selectClienteSalvo" list="listaClientes" type="text" autocomplete="off" placeholder="Digite o nome para buscar..." class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500" />
+            <datalist id="listaClientes"></datalist>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
@@ -397,40 +396,39 @@
       }
     }
 
+    let clientesCadastrados = [];
+    const rotuloCliente = (c) => (c.fantasia && c.fantasia !== c.razao) ? `${c.razao} (${c.fantasia})` : c.razao;
+
     function atualizarSelectClientes() {
-      const select = $('selectClienteSalvo');
-      select.innerHTML = '<option value="">Selecione um cliente do histórico...</option>';
+      const lista = $('listaClientes');
+      lista.innerHTML = '';
 
       // pedidos já estão do mais novo p/ o mais antigo: mantém o cadastro mais recente de cada cliente
-      const clientes = {};
+      const unicos = {};
       todosPedidos.forEach(p => {
-        if (p.razao && !clientes[p.razao]) clientes[p.razao] = p;
+        if (p.razao && !unicos[p.razao]) unicos[p.razao] = p;
       });
+      clientesCadastrados = Object.values(unicos).sort((a, b) => a.razao.localeCompare(b.razao, 'pt-BR'));
 
-      Object.values(clientes)
-        .sort((a, b) => a.razao.localeCompare(b.razao, 'pt-BR'))
-        .forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.razao;
-          opt.textContent = `${c.razao} (${c.fantasia || ''})`;
-          opt.dataset.fantasia = c.fantasia || '';
-          opt.dataset.cnpj = c.cnpj || '';
-          opt.dataset.endereco = c.endereco || '';
-          opt.dataset.pgto = c.pgto || '';
-          opt.dataset.nf = c.nf || 'Com NF.';
-          select.appendChild(opt);
-        });
+      clientesCadastrados.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = rotuloCliente(c);
+        lista.appendChild(opt);
+      });
     }
 
-    $('selectClienteSalvo').addEventListener('change', (e) => {
-      const opt = e.target.selectedOptions[0];
-      if (!opt || !opt.value) return;
-      $('razao').value = opt.value;
-      $('fantasia').value = opt.dataset.fantasia;
-      $('cnpj').value = opt.dataset.cnpj;
-      $('endereco').value = opt.dataset.endereco;
-      $('pgto').value = opt.dataset.pgto;
-      $('nf').value = opt.dataset.nf;
+    // Ao digitar/escolher um cliente da lista, preenche os dados automaticamente
+    $('selectClienteSalvo').addEventListener('input', (e) => {
+      const v = e.target.value.trim().toLowerCase();
+      if (!v) return;
+      const c = clientesCadastrados.find(x => rotuloCliente(x).toLowerCase() === v);
+      if (!c) return;
+      $('razao').value = c.razao;
+      $('fantasia').value = c.fantasia || '';
+      $('cnpj').value = c.cnpj || '';
+      $('endereco').value = c.endereco || '';
+      $('pgto').value = c.pgto || '';
+      $('nf').value = c.nf || 'Com NF.';
     });
 
     // ---------- CÁLCULO ----------
