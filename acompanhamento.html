@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acompanhamento do Vendedor - Muçarela</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- CABEÇALHO COM MÉTRICAS -->
+    <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">Acompanhamento do Vendedor - Muçarela</h1>
+        <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Sincronizando com a planilha na nuvem...</p>
+      </div>
+      <div class="text-right bg-amber-900 p-3 rounded-xl border border-amber-700 w-full md:w-auto">
+        <span class="text-xs text-amber-200 block font-semibold">Comissão Acumulada em Aberto:</span>
+        <span id="comissaoConsolidada" class="text-2xl font-black text-amber-300">R$ 0,00</span>
+        <span id="qtdPendente" class="text-xs text-amber-200 block mt-0.5">(0 pedidos pendentes)</span>
+      </div>
+    </header>
+
+    <!-- MENU DE ABAS -->
+    <div class="flex gap-2 border-b pb-2">
+      <button id="btnAbaNovo" onclick="mudarAba('novo')" class="bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
+        ➕ Novo Pedido & Fechamento
+      </button>
+      <button id="btnAbaHistorico" onclick="mudarAba('historico')" class="bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200">
+        📜 Histórico de Pedidos
+      </button>
+    </div>
+
+    <!-- ABA: NOVO PEDIDO & FECHAMENTO -->
+    <div id="conteudoNovo" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- CLIENTE E ENTREGA -->
+        <section class="bg-white p-6 rounded-2xl shadow space-y-4">
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-lg font-bold text-gray-800">1. Dados do Cliente & Entrega</h2>
+            <div class="flex items-center gap-2 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+              <input type="checkbox" id="isLucas" class="w-4 h-4 text-amber-600 rounded">
+              <label for="isLucas" class="text-xs font-bold text-amber-900 cursor-pointer">Pedido próprio (LUCAS)</label>
+            </div>
+          </div>
+
+          <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
+            <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
+            <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="">Selecione um cliente do histórico...</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Razão Social / Cliente</label>
+              <input id="razao" type="text" placeholder="Ex: Pizzaria Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Nome Fantasia</label>
+              <input id="fantasia" type="text" placeholder="Ex: Bella Napoli" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">CNPJ</label>
+            <input id="cnpj" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Endereço Completo</label>
+            <input id="endereco" type="text" class="w-full border rounded-lg p-2 text-sm outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1">📅 Dia da Entrega</label>
+              <input id="dataEntrega" type="date" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-amber-900 mb-1">⏰ Horário de Entrega</label>
+              <input id="horarioEntrega" type="text" placeholder="Ex: Manhã / 14:00" class="w-full border rounded-lg p-2 text-sm outline-none bg-amber-50/50" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Pagamento</label>
+              <input id="pgto" type="text" placeholder="14 dias" class="w-full border rounded-lg p-2 text-sm outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Nota Fiscal</label>
+              <select id="nf" class="w-full border rounded-lg p-2 text-sm bg-white">
+                <option value="Com NF.">Com NF.</option>
+                <option value="Sem NF.">Sem NF.</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- PRODUTO, TIPO E COMISSÃO -->
+        <section class="bg-white p-6 rounded-2xl shadow space-y-4 flex flex-col justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto, Tipo e Estimativa</h2>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda</label>
+                  <select id="tipoVenda" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                    <option value="Venda Normal">Venda Normal</option>
+                    <option value="Bonificação">Bonificação (Sem comissão)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Embalagem</label>
+                  <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
+                    <option value="pecas">Peças Avulsas (4kg/pç)</option>
+                    <option value="caixas">Caixas (1Cx = 8pç = 32kg)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label id="labelQtd" class="block text-xs font-semibold text-gray-600 mb-1">Qtd de Peças</label>
+                  <input id="qtdPecas" type="number" min="0" step="1" value="5" class="w-full border rounded-lg p-2 text-sm outline-none font-bold" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 mb-1">Preço Praticado (R$/kg)</label>
+                  <input id="precoPraticado" type="number" min="0" step="0.10" class="w-full border rounded-lg p-2 text-sm outline-none font-bold text-amber-900" placeholder="Ex: 34.00" value="34.00" />
+                </div>
+              </div>
+
+              <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+                <div class="flex justify-between">
+                  <span>Preço Base de Custo:</span>
+                  <span class="font-bold" id="precoBaseLabel">R$ 32,00/kg</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Comissão por kg:</span>
+                  <span class="font-bold" id="comissaoPorKg">R$ 2,00/kg</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Peso Estimado Total:</span>
+                  <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="painelPedidoAtual" class="mt-4 p-4 rounded-xl border space-y-2 bg-slate-50 border-gray-200">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Faturamento Estimado:</span>
+                <span id="resumoVendaAtual" class="font-bold text-gray-800">R$ 0,00</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span id="labelComissaoAtual" class="text-gray-600">Comissão Estimada:</span>
+                <span id="resumoComissaoAtual" class="font-extrabold text-green-600 text-base">R$ 0,00</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="bannerEdicao" class="hidden mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex justify-between items-center gap-2">
+            <span>✏️ Editando pedido de <b id="nomeEdicao"></b></span>
+            <button id="btnCancelarEdicao" class="bg-white border border-blue-300 text-blue-800 px-2 py-1 rounded font-bold">Cancelar edição</button>
+          </div>
+          <input type="hidden" id="editandoId" value="" />
+          <button id="btnSalvarECopiar" class="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl shadow transition mt-4">
+            📋 Copiar Texto do WhatsApp e Salvar na Planilha
+          </button>
+        </section>
+      </div>
+
+      <!-- FECHAMENTO -->
+      <section class="bg-amber-50 border border-amber-200 p-6 rounded-2xl shadow space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-amber-900">3. Fechamento de Comissões</h2>
+            <p class="text-xs text-amber-800">Consolidação na planilha em tempo real</p>
+          </div>
+          <button id="btnGerarFechamento" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-3 rounded-xl shadow transition">
+            📊 Fazer Fechamento Agora
+          </button>
+        </div>
+
+        <div id="painelFechamento" class="hidden bg-white p-5 rounded-xl border border-amber-300 space-y-4">
+          <h3 id="tituloFechamento" class="font-bold text-gray-800 text-sm border-b pb-2"></h3>
+          <div id="detalhesPedidosFechamento" class="space-y-1.5 max-h-60 overflow-y-auto text-xs font-mono bg-slate-50 p-3 rounded-lg border"></div>
+          <div class="flex justify-between items-center p-3 bg-slate-100 rounded-lg text-sm">
+            <span class="font-semibold text-gray-700">Total Líquido a Receber:</span>
+            <span id="valorTotalFechamento" class="text-xl font-black text-green-600">R$ 0,00</span>
+          </div>
+          <div class="flex gap-3">
+            <button id="btnCopiarRelatorio" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition text-sm">
+              📋 Copiar Relatório Completo
+            </button>
+            <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
+              ✅ Fechar Todos em Aberto
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ABA: HISTÓRICO -->
+    <div id="conteudoHistorico" class="hidden space-y-4">
+      <section class="bg-white border border-amber-200 p-6 rounded-2xl shadow space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-amber-900">📜 Histórico de Pedidos</h2>
+            <p class="text-xs text-gray-500">Consulte, filtre por data e copie para o WhatsApp</p>
+          </div>
+
+          <div class="flex flex-wrap gap-2 w-full md:w-auto items-center">
+            <input id="filtroBusca" type="text" placeholder="🔍 Buscar cliente..." class="border rounded-lg p-2 text-xs outline-none bg-slate-50" />
+            <div class="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 border rounded-lg p-1">
+              <span>De:</span>
+              <input id="filtroDataInicio" type="date" class="outline-none bg-transparent text-xs" />
+            </div>
+            <div class="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 border rounded-lg p-1">
+              <span>Até:</span>
+              <input id="filtroDataFim" type="date" class="outline-none bg-transparent text-xs" />
+            </div>
+            <select id="filtroTipoVenda" class="border rounded-lg p-2 text-xs bg-white">
+              <option value="">Todos os Tipos</option>
+              <option value="Venda Normal">Venda Normal</option>
+              <option value="Bonificação">Bonificação</option>
+            </select>
+            <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
+              <option value="">Todos</option>
+              <option value="aberto">Em aberto</option>
+              <option value="fechado">Fechados</option>
+            </select>
+            <button onclick="carregarDadosPlanilha()" class="bg-amber-700 hover:bg-amber-800 text-white px-3 py-2 rounded-lg text-xs font-bold">🔄 Atualizar</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-amber-100 text-amber-900 uppercase font-semibold">
+                <th class="p-2.5">Data/Cliente</th>
+                <th class="p-2.5">Tipo</th>
+                <th class="p-2.5">Qtd</th>
+                <th class="p-2.5">Praticado</th>
+                <th class="p-2.5">Comissão Est.</th>
+                <th class="p-2.5">Entrega</th>
+                <th class="p-2.5">Status</th>
+                <th class="p-2.5 text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaHistorico" class="divide-y divide-gray-100">
+              <tr><td colspan="8" class="p-4 text-center text-gray-400">Carregando dados da planilha...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="rodapeHistorico" class="text-xs text-gray-500 text-right"></div>
+      </section>
+    </div>
+
+  </div>
+
+  <script>
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxPCrL-tlK0sBO9WfrE9GSvrNIIZEB-xDwHCxLlGN7tvZCpnauBZTSYMurEwGjkLP3g/exec";
+
+    // ===== CONFIGURAÇÃO DESTA CÓPIA =====
+    const PRECO_BASE = 33.00;            // vendedor: 33.00
+    const COMISSAO_GESTOR_KG = 1.00;        // só no link de acompanhamento: 1.00
+    const MOSTRAR_PEDIDO_PROPRIO = false; // vendedor: false
+    // ====================================
+    const KG_POR_PECA = 4;
+    const PECAS_POR_CAIXA = 8;
+
+    let todosPedidos = [];
+    let relatorioTextoCopiar = "";
+    const fmtNum = (n) => '#' + String(n || 0).padStart(3, '0');
+    function numerarPedidos() {
+      const asc = [...todosPedidos].sort((a, b) => String(a.dataHora).localeCompare(String(b.dataHora)) || String(a.id).localeCompare(String(b.id)));
+      let n = 0;
+      asc.forEach(p => { if (p.numero > 0) n = Math.max(n, p.numero); else p.numero = ++n; });
+    }
+    function proximoNumero() { return todosPedidos.reduce((m, p) => Math.max(m, p.numero || 0), 0) + 1; }
+
+    // ---------- UTILITÁRIOS ----------
+    const $ = (id) => document.getElementById(id);
+    const brl = (v) => `R$ ${(Number(v) || 0).toFixed(2).replace('.', ',')}`;
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    // 'yyyy-mm-dd' (ou ISO) -> 'dd/mm/aaaa'
+    function formatarData(s) {
+      if (!s) return '';
+      const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[3]}/${m[2]}/${m[1]}` : String(s);
+    }
+
+    // ISO (UTC) -> 'yyyy-mm-dd' no fuso local (evita pedido da noite cair no dia seguinte)
+    function dataLocalISO(iso) {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+
+    async function copiarTexto(texto) {
+      try {
+        await navigator.clipboard.writeText(texto);
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    }
+
+    async function postPlanilha(payload) {
+      const resp = await fetch(URL_APPS_SCRIPT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const r = await resp.json();
+      if (r.result !== 'success') throw new Error(r.message || 'Erro desconhecido');
+      return r;
+    }
+
+    // ---------- ABAS ----------
+    window.mudarAba = function(aba) {
+      const ativo = "bg-amber-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm";
+      const inativo = "bg-white text-amber-900 hover:bg-amber-50 font-bold px-5 py-2.5 rounded-xl shadow transition text-sm border border-amber-200";
+      if (aba === 'novo') {
+        $('btnAbaNovo').className = ativo;
+        $('btnAbaHistorico').className = inativo;
+        $('conteudoNovo').classList.remove('hidden');
+        $('conteudoHistorico').classList.add('hidden');
+      } else {
+        $('btnAbaHistorico').className = ativo;
+        $('btnAbaNovo').className = inativo;
+        $('conteudoHistorico').classList.remove('hidden');
+        $('conteudoNovo').classList.add('hidden');
+        carregarDadosPlanilha();
+      }
+    };
+
+    // ---------- CARREGAR DA PLANILHA ----------
+    async function carregarDadosPlanilha() {
+      try {
+        const response = await fetch(URL_APPS_SCRIPT + "?t=" + Date.now());
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error(data.message || 'Resposta inválida');
+
+        todosPedidos = data.map((p, idx) => ({
+          id: p.id ?? p.ID ?? idx + 1,
+          dataHora: p.dataHora ?? p.Data ?? '',
+          razao: p.razao ?? p.Cliente ?? '',
+          fantasia: p.fantasia ?? p.Fantasia ?? p.razao ?? p.Cliente ?? '',
+          cnpj: p.cnpj ?? p.CNPJ ?? '',
+          contato: p.contato ?? p.Contato ?? '',
+          endereco: p.endereco ?? p['Endereço'] ?? '',
+          dataEntrega: p.dataEntrega ?? p.Entrega ?? '',
+          horarioEntrega: p.horarioEntrega ?? p['Horário'] ?? '',
+          pgto: p.pgto ?? p.Pagamento ?? '',
+          nf: p.nf ?? p.NF ?? 'Com NF.',
+          tipoVenda: p.tipoVenda ?? p['Tipo Venda'] ?? 'Venda Normal',
+          tipoEmbalagem: p.tipoEmbalagem ?? p.Embalagem ?? 'pecas',
+          qtdInput: parseFloat(p.qtdInput ?? p.Quantidade) || 0,
+          precoPraticado: parseFloat(p.precoPraticado ?? p['Preço Praticado']) || 0,
+          comissao: parseFloat(p.comissao ?? p['Comissão']) || 0,
+          numero: parseInt(String(p.numPedido ?? p['Nº Pedido'] ?? '').replace(/\D/g, '')) || 0,
+          fechado: (p.fechado ?? p.Fechado) === 'Sim'
+        })).sort((a, b) => String(b.dataHora).localeCompare(String(a.dataHora)));
+
+        numerarPedidos();
+        $('infoUltimoFechamento').innerText = `Sincronizado às ${new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
+        atualizarInterface();
+        atualizarSelectClientes();
+        renderizarHistorico();
+      } catch (e) {
+        console.error("Erro ao carregar da planilha:", e);
+        $('infoUltimoFechamento').innerText = '⚠️ Não foi possível sincronizar com a planilha.';
+        $('tabelaHistorico').innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-500">Erro ao carregar a planilha. Verifique a implantação do Apps Script.</td></tr>`;
+      }
+    }
+
+    function atualizarInterface() {
+      const pendentes = todosPedidos.filter(p => !p.fechado);
+      $('qtdPendente').innerText = `(${pendentes.length} pedido${pendentes.length === 1 ? '' : 's'} pendente${pendentes.length === 1 ? '' : 's'})`;
+      const total = pendentes.reduce((s, p) => s + p.comissao, 0);
+      const el = $('comissaoConsolidada');
+      el.innerText = brl(total);
+      el.className = total >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
+      if (COMISSAO_GESTOR_KG > 0) {
+        const kg = pendentes.filter(p => p.tipoVenda !== 'Bonificação')
+          .reduce((s, p) => s + (p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput) * KG_POR_PECA, 0);
+        $('qtdPendente').innerText += ` | Sua comissão (R$ ${COMISSAO_GESTOR_KG}/kg): ${brl(kg * COMISSAO_GESTOR_KG)}`;
+      }
+    }
+
+    function atualizarSelectClientes() {
+      const select = $('selectClienteSalvo');
+      select.innerHTML = '<option value="">Selecione um cliente do histórico...</option>';
+
+      // pedidos já estão do mais novo p/ o mais antigo: mantém o cadastro mais recente de cada cliente
+      const clientes = {};
+      todosPedidos.forEach(p => {
+        if (p.razao && !clientes[p.razao]) clientes[p.razao] = p;
+      });
+
+      Object.values(clientes)
+        .sort((a, b) => a.razao.localeCompare(b.razao, 'pt-BR'))
+        .forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.razao;
+          opt.textContent = `${c.razao} (${c.fantasia || ''})`;
+          opt.dataset.fantasia = c.fantasia || '';
+          opt.dataset.cnpj = c.cnpj || '';
+          opt.dataset.endereco = c.endereco || '';
+          opt.dataset.pgto = c.pgto || '';
+          opt.dataset.nf = c.nf || 'Com NF.';
+          select.appendChild(opt);
+        });
+    }
+
+    $('selectClienteSalvo').addEventListener('change', (e) => {
+      const opt = e.target.selectedOptions[0];
+      if (!opt || !opt.value) return;
+      $('razao').value = opt.value;
+      $('fantasia').value = opt.dataset.fantasia;
+      $('cnpj').value = opt.dataset.cnpj;
+      $('endereco').value = opt.dataset.endereco;
+      $('pgto').value = opt.dataset.pgto;
+      $('nf').value = opt.dataset.nf;
+    });
+
+    // ---------- CÁLCULO ----------
+    function calcularDadosAtuais() {
+      const tipo = $('tipoEmbalagem').value;
+      const qtdInput = parseFloat($('qtdPecas').value) || 0;
+      const precoPraticado = parseFloat($('precoPraticado').value) || 0;
+      const isLucas = $('isLucas').checked;
+      const tipoVenda = $('tipoVenda').value;
+
+      const totalPecas = tipo === 'caixas' ? qtdInput * PECAS_POR_CAIXA : qtdInput;
+      const pesoEstimadoKg = totalPecas * KG_POR_PECA;
+      const faturamentoEstimado = precoPraticado * pesoEstimadoKg;
+      const comissaoPorKg = precoPraticado - PRECO_BASE;
+
+      let comissaoVal;
+      if (tipoVenda === 'Bonificação') {
+        comissaoVal = 0;
+      } else if (isLucas) {
+        comissaoVal = -faturamentoEstimado;
+      } else {
+        comissaoVal = comissaoPorKg * pesoEstimadoKg;
+      }
+
+      return { totalPecas, pesoEstimadoKg, faturamentoEstimado, comissaoVal, comissaoPorKg, tipo, tipoVenda };
+    }
+
+    function atualizarTelaCalculo() {
+      $('labelQtd').innerText = $('tipoEmbalagem').value === 'caixas' ? 'Qtd de Caixas' : 'Qtd de Peças';
+      $('precoBaseLabel').innerText = `${brl(PRECO_BASE)}/kg`;
+
+      const r = calcularDadosAtuais();
+      $('pesoEstimado').innerText = r.pesoEstimadoKg.toFixed(1).replace('.', ',');
+      $('resumoVendaAtual').innerText = brl(r.faturamentoEstimado);
+      $('comissaoPorKg').innerText = `${brl(r.comissaoPorKg)}/kg`;
+
+      const el = $('resumoComissaoAtual');
+      el.innerText = brl(r.comissaoVal);
+      el.className = r.comissaoVal >= 0 ? 'font-extrabold text-green-600 text-base' : 'font-extrabold text-red-600 text-base';
+    }
+
+    ['tipoEmbalagem', 'qtdPecas', 'precoPraticado', 'isLucas', 'tipoVenda'].forEach(id => {
+      $(id).addEventListener('input', atualizarTelaCalculo);
+      $(id).addEventListener('change', atualizarTelaCalculo);
+    });
+
+    function limparFormulario() {
+      $('editandoId').value = '';
+      $('bannerEdicao').classList.add('hidden');
+      $('btnSalvarECopiar').innerText = '📋 Copiar Texto do WhatsApp e Salvar na Planilha';
+      $('isLucas').checked = false;
+      $('selectClienteSalvo').value = '';
+      ['razao', 'fantasia', 'cnpj', 'endereco', 'dataEntrega', 'horarioEntrega', 'pgto'].forEach(id => $(id).value = '');
+      $('nf').value = 'Com NF.';
+      $('tipoVenda').value = 'Venda Normal';
+      $('tipoEmbalagem').value = 'pecas';
+      $('qtdPecas').value = '5';
+      $('precoPraticado').value = '34.00';
+      atualizarTelaCalculo();
+    }
+
+    // ---------- TEXTO DO WHATSAPP ----------
+    function montarTextoZap(p) {
+      const un = p.tipoEmbalagem === 'caixas'
+        ? (p.qtdInput == 1 ? 'caixa' : 'caixas')
+        : (p.qtdInput == 1 ? 'peça' : 'peças');
+      const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
+      const peso = pecas * KG_POR_PECA;
+
+      let t = `🧀 *PEDIDO ${fmtNum(p.numero)} - MUÇARELA* 🧀\n\n`;
+      t += `🏢 *Cliente:* ${p.razao} (${p.fantasia || p.razao})\n`;
+      if (p.cnpj) t += `📄 *CNPJ:* ${p.cnpj}\n`;
+      if (p.endereco) t += `📍 *Endereço:* ${p.endereco}\n`;
+      if (p.dataEntrega || p.horarioEntrega) {
+        const data = formatarData(p.dataEntrega) || 'Data a combinar';
+        t += `🚚 *Entrega:* ${data}${p.horarioEntrega ? ' - ' + p.horarioEntrega : ' - Horário a combinar'}\n`;
+      }
+      t += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${p.qtdInput} ${un} (~${peso.toFixed(0)} kg)\n`;
+      t += `💰 *Preço Praticado:* ${brl(p.precoPraticado)}/kg\n`;
+      t += `💳 *Condição Pgto:* ${p.pgto || 'A combinar'} | *NF:* ${p.nf || 'Com NF.'}`;
+      return t;
+    }
+
+    window.copiarPedidoZap = async function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p) return;
+      await copiarTexto(montarTextoZap(p));
+      alert(`Texto do pedido de "${p.fantasia || p.razao}" copiado!`);
+    };
+
+    window.editarPedido = function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p) return;
+      if (p.fechado) { alert('Pedidos de períodos já fechados não podem ser editados.'); return; }
+
+      $('editandoId').value = p.id;
+      $('razao').value = p.razao;
+      $('fantasia').value = p.fantasia;
+      $('cnpj').value = p.cnpj;
+      $('endereco').value = p.endereco;
+      $('dataEntrega').value = p.dataEntrega;
+      $('horarioEntrega').value = p.horarioEntrega;
+      $('pgto').value = p.pgto;
+      $('nf').value = p.nf;
+      $('tipoVenda').value = p.tipoVenda;
+      $('tipoEmbalagem').value = p.tipoEmbalagem;
+      $('qtdPecas').value = p.qtdInput;
+      $('precoPraticado').value = p.precoPraticado;
+
+      // O app não guarda o "pedido próprio" na planilha: deduz pelo valor da comissão
+      const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
+      const fat = p.precoPraticado * pecas * KG_POR_PECA;
+      $('isLucas').checked = p.tipoVenda !== 'Bonificação' && fat > 0 && Math.abs(p.comissao + fat) < 0.01;
+
+      $('nomeEdicao').innerText = p.fantasia || p.razao;
+      $('bannerEdicao').classList.remove('hidden');
+      $('btnSalvarECopiar').innerText = '💾 Salvar Alterações e Copiar Texto';
+      atualizarTelaCalculo();
+      mudarAba('novo');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    $('btnCancelarEdicao').addEventListener('click', limparFormulario);
+
+    window.fecharPedido = async function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p || p.fechado) return;
+      if (!confirm(`Fechar o pedido ${fmtNum(p.numero)} de "${p.fantasia || p.razao}" (${brl(p.comissao)})?\nUse quando o boleto compensar.`)) return;
+      try {
+        await postPlanilha({ action: 'fechar', ids: [p.id] });
+        await carregarDadosPlanilha();
+      } catch (e) {
+        alert('Erro ao fechar: ' + e.message);
+      }
+    };
+
+    window.excluirPedido = async function(id) {
+      const p = todosPedidos.find(item => String(item.id) === String(id));
+      if (!p) return;
+      if (!confirm(`Excluir o pedido de "${p.fantasia || p.razao}"? Essa ação remove a linha da planilha.`)) return;
+      try {
+        await postPlanilha({ action: 'excluir', id: p.id });
+        await carregarDadosPlanilha();
+      } catch (e) {
+        alert('Erro ao excluir: ' + e.message);
+      }
+    };
+
+    // ---------- HISTÓRICO ----------
+    function renderizarHistorico() {
+      const tbody = $('tabelaHistorico');
+      const busca = $('filtroBusca').value.toLowerCase();
+      const dataInicio = $('filtroDataInicio').value;
+      const dataFim = $('filtroDataFim').value;
+      const tipoFiltro = $('filtroTipoVenda').value;
+      const statusFiltro = $('filtroStatus').value;
+
+      const filtrados = todosPedidos.filter(p => {
+        const matchBusca = (p.razao || '').toLowerCase().includes(busca) || (p.fantasia || '').toLowerCase().includes(busca);
+        const matchTipo = !tipoFiltro || p.tipoVenda === tipoFiltro;
+        const matchStatus = !statusFiltro || (statusFiltro === 'fechado' ? p.fechado : !p.fechado);
+
+        let matchData = true;
+        const dia = p.dataHora ? dataLocalISO(p.dataHora) : '';
+        if (dia) {
+          if (dataInicio && dia < dataInicio) matchData = false;
+          if (dataFim && dia > dataFim) matchData = false;
+        }
+        return matchBusca && matchTipo && matchStatus && matchData;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">Nenhum pedido encontrado.</td></tr>`;
+        $('rodapeHistorico').innerText = '';
+        return;
+      }
+
+      let html = '';
+      filtrados.forEach(p => {
+        const dataCriacao = p.dataHora ? new Date(p.dataHora).toLocaleDateString('pt-BR') : '';
+        const cor = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
+        const badgeTipo = p.tipoVenda === 'Bonificação'
+          ? '<span class="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Bonificação</span>'
+          : '<span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Venda</span>';
+        const badgeStatus = p.fechado
+          ? '<span class="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Fechado</span>'
+          : '<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Em aberto</span>';
+        const un = p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs';
+        const entrega = p.dataEntrega ? formatarData(p.dataEntrega) : '-';
+        const idSeguro = esc(p.id);
+
+        html += `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2.5">
+              <div class="font-bold text-gray-800"><span class="text-amber-700">${fmtNum(p.numero)}</span> ${esc(p.fantasia || p.razao)}</div>
+              <div class="text-[10px] text-gray-400">${dataCriacao}</div>
+            </td>
+            <td class="p-2.5">${badgeTipo}</td>
+            <td class="p-2.5">${esc(p.qtdInput)} ${un}</td>
+            <td class="p-2.5 font-semibold">${brl(p.precoPraticado)}</td>
+            <td class="p-2.5 font-extrabold ${cor}">${brl(p.comissao)}</td>
+            <td class="p-2.5 text-gray-600">${entrega} (${esc(p.horarioEntrega || 'N/I')})</td>
+            <td class="p-2.5">${badgeStatus}</td>
+            <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
+              ${p.fechado ? '' : `<button onclick="editarPedido('${idSeguro}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>`}
+              ${p.fechado ? '' : `<button onclick="fecharPedido('${idSeguro}')" class="bg-slate-800 hover:bg-slate-900 text-white px-2 py-1 rounded text-[10px]">✅ Fechar</button>`}
+              <button onclick="copiarPedidoZap('${idSeguro}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
+              <button onclick="excluirPedido('${idSeguro}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px]">🗑️</button>
+            </td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+
+      const totalFiltrado = filtrados.reduce((s, p) => s + p.comissao, 0);
+      $('rodapeHistorico').innerText = `${filtrados.length} pedido(s) | Comissão no filtro: ${brl(totalFiltrado)}`;
+    }
+
+    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
+      $(id).addEventListener('input', renderizarHistorico);
+      $(id).addEventListener('change', renderizarHistorico);
+    });
+
+    // ---------- SALVAR NA PLANILHA + COPIAR ----------
+    $('btnSalvarECopiar').addEventListener('click', async () => {
+      const btn = $('btnSalvarECopiar');
+      const editandoId = $('editandoId').value;
+      const qtdInput = parseFloat($('qtdPecas').value) || 0;
+      const precoPraticado = parseFloat($('precoPraticado').value) || 0;
+
+      // Todos os campos são obrigatórios
+      const obrigatorios = [
+        ['razao', 'Razão Social / Cliente'], ['fantasia', 'Nome Fantasia'], ['cnpj', 'CNPJ'],
+        ['endereco', 'Endereço Completo'], ['dataEntrega', 'Dia da Entrega'],
+        ['horarioEntrega', 'Horário de Entrega'], ['pgto', 'Pagamento']
+      ];
+      for (const [id, nome] of obrigatorios) {
+        if (!$(id).value.trim()) {
+          alert(`Preencha o campo "${nome}".`);
+          $(id).focus();
+          return;
+        }
+      }
+      if (qtdInput <= 0) { alert('Informe a quantidade do pedido.'); $('qtdPecas').focus(); return; }
+      if (precoPraticado <= 0) { alert('Informe o Preço Praticado.'); $('precoPraticado').focus(); return; }
+
+      const res = calcularDadosAtuais();
+      const original = editandoId ? todosPedidos.find(x => String(x.id) === String(editandoId)) : null;
+
+      const pedido = {
+        id: editandoId || Date.now(),
+        numero: original ? original.numero : proximoNumero(),
+        numPedido: original ? original.numero : proximoNumero(),
+        dataHora: original ? original.dataHora : new Date().toISOString(),
+        razao: $('razao').value.trim(),
+        fantasia: $('fantasia').value.trim(),
+        cnpj: $('cnpj').value.trim(),
+        contato: '',
+        endereco: $('endereco').value.trim(),
+        dataEntrega: $('dataEntrega').value,
+        horarioEntrega: $('horarioEntrega').value.trim(),
+        pgto: $('pgto').value.trim(),
+        nf: $('nf').value,
+        tipoVenda: res.tipoVenda,
+        tipoEmbalagem: res.tipo,
+        qtdInput,
+        precoPraticado,
+        comissao: res.comissaoVal
+      };
+
+      btn.disabled = true;
+      const textoOriginal = btn.innerText;
+      btn.innerText = 'Salvando...';
+
+      try {
+        await copiarTexto(montarTextoZap(pedido));
+        await postPlanilha({ action: editandoId ? 'editar' : 'salvar', ...pedido });
+        alert(editandoId
+          ? '✅ Pedido atualizado na planilha e texto copiado para o WhatsApp!'
+          : '✅ Pedido salvo na planilha e texto copiado para o WhatsApp!');
+        limparFormulario();
+        carregarDadosPlanilha();
+      } catch (e) {
+        console.error("Erro ao salvar:", e);
+        alert('❌ Erro ao salvar na planilha: ' + e.message + '\n\nO texto do WhatsApp já foi copiado, mas o pedido NÃO foi salvo.');
+        btn.innerText = textoOriginal;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ---------- FECHAMENTO ----------
+    $('btnGerarFechamento').addEventListener('click', () => {
+      const pendentes = todosPedidos.filter(p => !p.fechado);
+      if (pendentes.length === 0) {
+        alert('Não há pedidos pendentes para fechamento.');
+        return;
+      }
+
+      let total = 0;
+      let html = '';
+      let texto = `📊 *FECHAMENTO ESTIMADO - MUÇARELA* 📊\n\n`;
+
+      pendentes.forEach((p, i) => {
+        total += p.comissao;
+        const cor = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
+        html += `<div class="flex justify-between border-b pb-1"><span>${fmtNum(p.numero)} ${esc(p.fantasia)} (${new Date(p.dataHora).toLocaleDateString('pt-BR')})</span> <span class="font-bold ${cor}">${brl(p.comissao)}</span></div>`;
+        texto += `${fmtNum(p.numero)} ${p.fantasia} (${new Date(p.dataHora).toLocaleDateString('pt-BR')}) | Com. Est.: ${brl(p.comissao)}\n`;
+      });
+
+      texto += `\n💰 *TOTAL LÍQUIDO A RECEBER:* ${brl(total)}`;
+      relatorioTextoCopiar = texto;
+
+      $('tituloFechamento').innerText = `Pedidos em aberto (${pendentes.length} itens):`;
+      $('detalhesPedidosFechamento').innerHTML = html;
+      const el = $('valorTotalFechamento');
+      el.innerText = brl(total);
+      el.className = total >= 0 ? 'text-xl font-black text-green-600' : 'text-xl font-black text-red-600';
+      $('painelFechamento').classList.remove('hidden');
+    });
+
+    $('btnCopiarRelatorio').addEventListener('click', async () => {
+      await copiarTexto(relatorioTextoCopiar);
+      alert('Relatório copiado!');
+    });
+
+    $('btnConcluirFechamento').addEventListener('click', async () => {
+      const pendentes = todosPedidos.filter(p => !p.fechado);
+      if (pendentes.length === 0) return;
+      if (!confirm(`Concluir o período? ${pendentes.length} pedido(s) serão marcados como FECHADOS na planilha.`)) return;
+
+      const btn = $('btnConcluirFechamento');
+      btn.disabled = true;
+      try {
+        const r = await postPlanilha({ action: 'fechar', ids: pendentes.map(p => p.id) });
+        alert(`Fechamento concluído! ${r.fechados} pedido(s) marcados como fechados.`);
+        $('painelFechamento').classList.add('hidden');
+        await carregarDadosPlanilha();
+      } catch (e) {
+        alert('Erro ao concluir o fechamento: ' + e.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    if (!MOSTRAR_PEDIDO_PROPRIO) $('isLucas').closest('div').style.display = 'none';
+    carregarDadosPlanilha();
+    atualizarTelaCalculo();
+  </script>
+</body>
+</html>
