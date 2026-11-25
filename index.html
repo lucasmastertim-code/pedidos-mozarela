@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestão de Comissões - Muçarela</title>
+  <title>Gestão de Comissões - Frios</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
@@ -12,7 +12,7 @@
     <!-- CABEÇALHO COM MÉTRICAS -->
     <header class="bg-amber-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Gestão de Vendas - Muçarela (Planilha)</h1>
+        <h1 class="text-2xl font-bold">Gestão de Vendas - Frios (Planilha)</h1>
         <p class="text-amber-200 text-sm" id="infoUltimoFechamento">Sincronizando com a planilha na nuvem...</p>
       </div>
       <div class="text-right bg-amber-900 p-3 rounded-xl border border-amber-700 w-full md:w-auto">
@@ -47,8 +47,9 @@
 
           <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1.5">
             <label class="block text-xs font-bold text-amber-900">🔍 Buscar Cliente Cadastrado anteriormente:</label>
-            <input id="selectClienteSalvo" list="listaClientes" type="text" autocomplete="off" placeholder="Digite o nome para buscar..." class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500" />
-            <datalist id="listaClientes"></datalist>
+            <select id="selectClienteSalvo" class="w-full border rounded-lg p-2 text-sm bg-white font-medium outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="">Selecione um cliente do histórico...</option>
+            </select>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
@@ -103,6 +104,10 @@
           <div>
             <h2 class="text-lg font-bold text-gray-800 border-b pb-2 mb-4">2. Produto, Tipo e Estimativa</h2>
             <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Produto</label>
+                <select id="produto" class="w-full border rounded-lg p-2 text-sm bg-white font-bold text-amber-900 outline-none focus:ring-2 focus:ring-amber-500"></select>
+              </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="block text-xs font-semibold text-gray-600 mb-1">Tipo de Venda</label>
@@ -114,8 +119,6 @@
                 <div>
                   <label class="block text-xs font-semibold text-gray-600 mb-1">Embalagem</label>
                   <select id="tipoEmbalagem" class="w-full border rounded-lg p-2 text-sm bg-white font-medium">
-                    <option value="pecas">Peças Avulsas (4kg/pç)</option>
-                    <option value="caixas">Caixas (1Cx = 8pç = 32kg)</option>
                   </select>
                 </div>
               </div>
@@ -123,7 +126,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label id="labelQtd" class="block text-xs font-semibold text-gray-600 mb-1">Qtd de Peças</label>
-                  <input id="qtdPecas" type="number" min="0" step="1" value="5" class="w-full border rounded-lg p-2 text-sm outline-none font-bold" />
+                  <input id="qtdPecas" type="number" min="0" step="any" value="5" class="w-full border rounded-lg p-2 text-sm outline-none font-bold" />
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-gray-600 mb-1">Preço Praticado (R$/kg)</label>
@@ -133,7 +136,7 @@
 
               <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
                 <div class="flex justify-between">
-                  <span>Preço Base de Custo:</span>
+                  <span id="labelPiso">Preço Base de Custo:</span>
                   <span class="font-bold" id="precoBaseLabel">R$ 32,00/kg</span>
                 </div>
                 <div class="flex justify-between">
@@ -142,7 +145,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span>Peso Estimado Total:</span>
-                  <span class="font-bold"><span id="pesoEstimado">20,0</span> kg (4kg/peça)</span>
+                  <span class="font-bold"><span id="pesoEstimado">20,0</span> kg</span>
                 </div>
               </div>
             </div>
@@ -194,7 +197,7 @@
               📋 Copiar Relatório Completo
             </button>
             <button id="btnConcluirFechamento" class="bg-slate-800 hover:bg-slate-900 disabled:opacity-60 text-white font-bold px-4 py-3 rounded-xl transition text-sm">
-              ✅ Fechar Todos em Aberto
+              ✅ Concluir Período
             </button>
           </div>
         </div>
@@ -224,6 +227,9 @@
               <option value="">Todos os Tipos</option>
               <option value="Venda Normal">Venda Normal</option>
               <option value="Bonificação">Bonificação</option>
+            </select>
+            <select id="filtroProduto" class="border rounded-lg p-2 text-xs bg-white">
+              <option value="">Todos os Produtos</option>
             </select>
             <select id="filtroStatus" class="border rounded-lg p-2 text-xs bg-white">
               <option value="">Todos</option>
@@ -262,23 +268,26 @@
   <script>
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxZR-svpRlqs-Mb8JhUUEfW2A0-VyYne8mZ0-w6xttjgR83qNLEzNXcKITIHHnpFBSa_w/exec";
 
-    // ===== CONFIGURAÇÃO DESTA CÓPIA =====
-    const PRECO_BASE = 32.00;            // vendedor: 33.00
-    const COMISSAO_GESTOR_KG = 0;        // só no link de acompanhamento: 1.00
-    const MOSTRAR_PEDIDO_PROPRIO = true; // vendedor: false
-    // ====================================
-    const KG_POR_PECA = 4;
-    const PECAS_POR_CAIXA = 8;
+    // Tabela de produtos. "piso" = preço mínimo por kg; tudo acima dele é comissão.
+    // kgPorPeca / pecasPorCaixa: preencha para liberar venda por peça/caixa (null = só por kg).
+    const PRODUTOS = [
+      { nome: "Mussarela peça", piso: 32.00, kgPorPeca: 4, pecasPorCaixa: 8 },
+      { nome: "Mussarela fatiada", piso: 36.90, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Apresuntado peça", piso: 14.50, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Apresuntado fatiado", piso: 16.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Provolone peça", piso: 48.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Provolone fatiado", piso: 52.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Queijo prato peça", piso: 40.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Queijo prato fatiado", piso: 42.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Calabresa inteira", piso: 18.50, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Calabresa fatiada", piso: 20.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Calabresa cubos", piso: 18.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Bacon paleta", piso: 25.00, kgPorPeca: null, pecasPorCaixa: null },
+      { nome: "Bacon cubos", piso: 24.90, kgPorPeca: null, pecasPorCaixa: null }
+    ];
 
     let todosPedidos = [];
     let relatorioTextoCopiar = "";
-    const fmtNum = (n) => '#' + String(n || 0).padStart(3, '0');
-    function numerarPedidos() {
-      const asc = [...todosPedidos].sort((a, b) => String(a.dataHora).localeCompare(String(b.dataHora)) || String(a.id).localeCompare(String(b.id)));
-      let n = 0;
-      asc.forEach(p => { if (p.numero > 0) n = Math.max(n, p.numero); else p.numero = ++n; });
-    }
-    function proximoNumero() { return todosPedidos.reduce((m, p) => Math.max(m, p.numero || 0), 0) + 1; }
 
     // ---------- UTILITÁRIOS ----------
     const $ = (id) => document.getElementById(id);
@@ -366,11 +375,10 @@
           qtdInput: parseFloat(p.qtdInput ?? p.Quantidade) || 0,
           precoPraticado: parseFloat(p.precoPraticado ?? p['Preço Praticado']) || 0,
           comissao: parseFloat(p.comissao ?? p['Comissão']) || 0,
-          numero: parseInt(String(p.numPedido ?? p['Nº Pedido'] ?? '').replace(/\D/g, '')) || 0,
-          fechado: (p.fechado ?? p.Fechado) === 'Sim'
+          fechado: (p.fechado ?? p.Fechado) === 'Sim',
+          produto: (p.produto ?? p.Produto) || PRODUTOS[0].nome
         })).sort((a, b) => String(b.dataHora).localeCompare(String(a.dataHora)));
 
-        numerarPedidos();
         $('infoUltimoFechamento').innerText = `Sincronizado às ${new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}`;
         atualizarInterface();
         atualizarSelectClientes();
@@ -389,60 +397,85 @@
       const el = $('comissaoConsolidada');
       el.innerText = brl(total);
       el.className = total >= 0 ? 'text-2xl font-black text-amber-300' : 'text-2xl font-black text-red-300';
-      if (COMISSAO_GESTOR_KG > 0) {
-        const kg = pendentes.filter(p => p.tipoVenda !== 'Bonificação')
-          .reduce((s, p) => s + (p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput) * KG_POR_PECA, 0);
-        $('qtdPendente').innerText += ` | Sua comissão (R$ ${COMISSAO_GESTOR_KG}/kg): ${brl(kg * COMISSAO_GESTOR_KG)}`;
-      }
     }
-
-    let clientesCadastrados = [];
-    const rotuloCliente = (c) => (c.fantasia && c.fantasia !== c.razao) ? `${c.razao} (${c.fantasia})` : c.razao;
 
     function atualizarSelectClientes() {
-      const lista = $('listaClientes');
-      lista.innerHTML = '';
+      const select = $('selectClienteSalvo');
+      select.innerHTML = '<option value="">Selecione um cliente do histórico...</option>';
 
       // pedidos já estão do mais novo p/ o mais antigo: mantém o cadastro mais recente de cada cliente
-      const unicos = {};
+      const clientes = {};
       todosPedidos.forEach(p => {
-        if (p.razao && !unicos[p.razao]) unicos[p.razao] = p;
+        if (p.razao && !clientes[p.razao]) clientes[p.razao] = p;
       });
-      clientesCadastrados = Object.values(unicos).sort((a, b) => a.razao.localeCompare(b.razao, 'pt-BR'));
 
-      clientesCadastrados.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = rotuloCliente(c);
-        lista.appendChild(opt);
-      });
+      Object.values(clientes)
+        .sort((a, b) => a.razao.localeCompare(b.razao, 'pt-BR'))
+        .forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.razao;
+          opt.textContent = `${c.razao} (${c.fantasia || ''})`;
+          opt.dataset.fantasia = c.fantasia || '';
+          opt.dataset.cnpj = c.cnpj || '';
+          opt.dataset.endereco = c.endereco || '';
+          opt.dataset.pgto = c.pgto || '';
+          opt.dataset.nf = c.nf || 'Com NF.';
+          select.appendChild(opt);
+        });
     }
 
-    // Ao digitar/escolher um cliente da lista, preenche os dados automaticamente
-    $('selectClienteSalvo').addEventListener('input', (e) => {
-      const v = e.target.value.trim().toLowerCase();
-      if (!v) return;
-      const c = clientesCadastrados.find(x => rotuloCliente(x).toLowerCase() === v);
-      if (!c) return;
-      $('razao').value = c.razao;
-      $('fantasia').value = c.fantasia || '';
-      $('cnpj').value = c.cnpj || '';
-      $('endereco').value = c.endereco || '';
-      $('pgto').value = c.pgto || '';
-      $('nf').value = c.nf || 'Com NF.';
+    $('selectClienteSalvo').addEventListener('change', (e) => {
+      const opt = e.target.selectedOptions[0];
+      if (!opt || !opt.value) return;
+      $('razao').value = opt.value;
+      $('fantasia').value = opt.dataset.fantasia;
+      $('cnpj').value = opt.dataset.cnpj;
+      $('endereco').value = opt.dataset.endereco;
+      $('pgto').value = opt.dataset.pgto;
+      $('nf').value = opt.dataset.nf;
     });
 
-    // ---------- CÁLCULO ----------
+    // ---------- PRODUTOS E CÁLCULO ----------
+    function acharProduto(nome) {
+      return PRODUTOS.find(p => p.nome === nome) || PRODUTOS[0];
+    }
+    function produtoAtual() { return acharProduto($('produto').value); }
+
+    function pesoKg(prod, tipo, qtd) {
+      if (tipo === 'caixas') return qtd * (prod.pecasPorCaixa || 0) * (prod.kgPorPeca || 0);
+      if (tipo === 'pecas') return qtd * (prod.kgPorPeca || 0);
+      return qtd; // kg
+    }
+
+    function popularProdutos() {
+      const opts = PRODUTOS.map(p => `<option value="${esc(p.nome)}">${esc(p.nome)}</option>`).join('');
+      $('produto').innerHTML = opts;
+      $('filtroProduto').innerHTML = '<option value="">Todos os Produtos</option>' + opts;
+    }
+
+    function atualizarEmbalagens() {
+      const prod = produtoAtual();
+      const sel = $('tipoEmbalagem');
+      const atual = sel.value;
+      const ops = [];
+      if (prod.kgPorPeca) ops.push(['pecas', `Peças (${prod.kgPorPeca}kg/pç)`]);
+      if (prod.kgPorPeca && prod.pecasPorCaixa) ops.push(['caixas', `Caixas (1Cx = ${prod.pecasPorCaixa}pç = ${prod.kgPorPeca * prod.pecasPorCaixa}kg)`]);
+      ops.push(['kg', 'Quilos (kg)']);
+      sel.innerHTML = ops.map(o => `<option value="${o[0]}">${o[1]}</option>`).join('');
+      sel.value = ops.some(o => o[0] === atual) ? atual : ops[0][0];
+    }
+
     function calcularDadosAtuais() {
+      const prod = produtoAtual();
       const tipo = $('tipoEmbalagem').value;
       const qtdInput = parseFloat($('qtdPecas').value) || 0;
       const precoPraticado = parseFloat($('precoPraticado').value) || 0;
       const isLucas = $('isLucas').checked;
       const tipoVenda = $('tipoVenda').value;
 
-      const totalPecas = tipo === 'caixas' ? qtdInput * PECAS_POR_CAIXA : qtdInput;
-      const pesoEstimadoKg = totalPecas * KG_POR_PECA;
+      const pesoEstimadoKg = pesoKg(prod, tipo, qtdInput);
       const faturamentoEstimado = precoPraticado * pesoEstimadoKg;
-      const comissaoPorKg = precoPraticado - PRECO_BASE;
+      const comissaoPorKg = Math.round((precoPraticado - prod.piso) * 100) / 100;
 
       let comissaoVal;
       if (tipoVenda === 'Bonificação') {
@@ -452,23 +485,32 @@
       } else {
         comissaoVal = comissaoPorKg * pesoEstimadoKg;
       }
+      comissaoVal = Math.round(comissaoVal * 100) / 100;
 
-      return { totalPecas, pesoEstimadoKg, faturamentoEstimado, comissaoVal, comissaoPorKg, tipo, tipoVenda };
+      return { prod, pesoEstimadoKg, faturamentoEstimado, comissaoVal, comissaoPorKg, tipo, tipoVenda };
     }
 
     function atualizarTelaCalculo() {
-      $('labelQtd').innerText = $('tipoEmbalagem').value === 'caixas' ? 'Qtd de Caixas' : 'Qtd de Peças';
-      $('precoBaseLabel').innerText = `${brl(PRECO_BASE)}/kg`;
+      const tipo = $('tipoEmbalagem').value;
+      $('labelQtd').innerText = tipo === 'caixas' ? 'Qtd de Caixas' : (tipo === 'kg' ? 'Quantidade (kg)' : 'Qtd de Peças');
 
       const r = calcularDadosAtuais();
+      $('precoBaseLabel').innerText = `${brl(r.prod.piso)}/kg`;
       $('pesoEstimado').innerText = r.pesoEstimadoKg.toFixed(1).replace('.', ',');
       $('resumoVendaAtual').innerText = brl(r.faturamentoEstimado);
       $('comissaoPorKg').innerText = `${brl(r.comissaoPorKg)}/kg`;
+      $('comissaoPorKg').className = r.comissaoPorKg < 0 ? 'font-bold text-red-600' : 'font-bold';
 
       const el = $('resumoComissaoAtual');
       el.innerText = brl(r.comissaoVal);
       el.className = r.comissaoVal >= 0 ? 'font-extrabold text-green-600 text-base' : 'font-extrabold text-red-600 text-base';
     }
+
+    $('produto').addEventListener('change', () => {
+      atualizarEmbalagens();
+      $('precoPraticado').value = produtoAtual().piso.toFixed(2);
+      atualizarTelaCalculo();
+    });
 
     ['tipoEmbalagem', 'qtdPecas', 'precoPraticado', 'isLucas', 'tipoVenda'].forEach(id => {
       $(id).addEventListener('input', atualizarTelaCalculo);
@@ -484,21 +526,23 @@
       ['razao', 'fantasia', 'cnpj', 'endereco', 'dataEntrega', 'horarioEntrega', 'pgto'].forEach(id => $(id).value = '');
       $('nf').value = 'Com NF.';
       $('tipoVenda').value = 'Venda Normal';
-      $('tipoEmbalagem').value = 'pecas';
+      $('produto').value = PRODUTOS[0].nome;
+      atualizarEmbalagens();
       $('qtdPecas').value = '5';
-      $('precoPraticado').value = '34.00';
+      $('precoPraticado').value = produtoAtual().piso.toFixed(2);
       atualizarTelaCalculo();
     }
 
     // ---------- TEXTO DO WHATSAPP ----------
     function montarTextoZap(p) {
+      const prod = acharProduto(p.produto);
       const un = p.tipoEmbalagem === 'caixas'
         ? (p.qtdInput == 1 ? 'caixa' : 'caixas')
-        : (p.qtdInput == 1 ? 'peça' : 'peças');
-      const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
-      const peso = pecas * KG_POR_PECA;
+        : (p.tipoEmbalagem === 'kg' ? 'kg' : (p.qtdInput == 1 ? 'peça' : 'peças'));
+      const peso = pesoKg(prod, p.tipoEmbalagem, p.qtdInput);
+      const qtdTxt = p.tipoEmbalagem === 'kg' ? `${p.qtdInput} kg` : `${p.qtdInput} ${un} (~${peso.toFixed(0)} kg)`;
 
-      let t = `🧀 *PEDIDO ${fmtNum(p.numero)} - MUÇARELA* 🧀\n\n`;
+      let t = `🧾 *PEDIDO* 🧾\n\n`;
       t += `🏢 *Cliente:* ${p.razao} (${p.fantasia || p.razao})\n`;
       if (p.cnpj) t += `📄 *CNPJ:* ${p.cnpj}\n`;
       if (p.endereco) t += `📍 *Endereço:* ${p.endereco}\n`;
@@ -506,7 +550,8 @@
         const data = formatarData(p.dataEntrega) || 'Data a combinar';
         t += `🚚 *Entrega:* ${data}${p.horarioEntrega ? ' - ' + p.horarioEntrega : ' - Horário a combinar'}\n`;
       }
-      t += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${p.qtdInput} ${un} (~${peso.toFixed(0)} kg)\n`;
+      t += `🧀 *Produto:* ${p.produto || prod.nome}\n`;
+      t += `📦 *Tipo:* ${p.tipoVenda} | *Qtd:* ${qtdTxt}\n`;
       t += `💰 *Preço Praticado:* ${brl(p.precoPraticado)}/kg\n`;
       t += `💳 *Condição Pgto:* ${p.pgto || 'A combinar'} | *NF:* ${p.nf || 'Com NF.'}`;
       return t;
@@ -534,13 +579,14 @@
       $('pgto').value = p.pgto;
       $('nf').value = p.nf;
       $('tipoVenda').value = p.tipoVenda;
+      $('produto').value = p.produto;
+      atualizarEmbalagens();
       $('tipoEmbalagem').value = p.tipoEmbalagem;
       $('qtdPecas').value = p.qtdInput;
       $('precoPraticado').value = p.precoPraticado;
 
       // O app não guarda o "pedido próprio" na planilha: deduz pelo valor da comissão
-      const pecas = p.tipoEmbalagem === 'caixas' ? p.qtdInput * PECAS_POR_CAIXA : p.qtdInput;
-      const fat = p.precoPraticado * pecas * KG_POR_PECA;
+      const fat = p.precoPraticado * pesoKg(acharProduto(p.produto), p.tipoEmbalagem, p.qtdInput);
       $('isLucas').checked = p.tipoVenda !== 'Bonificação' && fat > 0 && Math.abs(p.comissao + fat) < 0.01;
 
       $('nomeEdicao').innerText = p.fantasia || p.razao;
@@ -552,18 +598,6 @@
     };
 
     $('btnCancelarEdicao').addEventListener('click', limparFormulario);
-
-    window.fecharPedido = async function(id) {
-      const p = todosPedidos.find(item => String(item.id) === String(id));
-      if (!p || p.fechado) return;
-      if (!confirm(`Fechar o pedido ${fmtNum(p.numero)} de "${p.fantasia || p.razao}" (${brl(p.comissao)})?\nUse quando o boleto compensar.`)) return;
-      try {
-        await postPlanilha({ action: 'fechar', ids: [p.id] });
-        await carregarDadosPlanilha();
-      } catch (e) {
-        alert('Erro ao fechar: ' + e.message);
-      }
-    };
 
     window.excluirPedido = async function(id) {
       const p = todosPedidos.find(item => String(item.id) === String(id));
@@ -585,10 +619,12 @@
       const dataFim = $('filtroDataFim').value;
       const tipoFiltro = $('filtroTipoVenda').value;
       const statusFiltro = $('filtroStatus').value;
+      const produtoFiltro = $('filtroProduto').value;
 
       const filtrados = todosPedidos.filter(p => {
         const matchBusca = (p.razao || '').toLowerCase().includes(busca) || (p.fantasia || '').toLowerCase().includes(busca);
         const matchTipo = !tipoFiltro || p.tipoVenda === tipoFiltro;
+        const matchProduto = !produtoFiltro || p.produto === produtoFiltro;
         const matchStatus = !statusFiltro || (statusFiltro === 'fechado' ? p.fechado : !p.fechado);
 
         let matchData = true;
@@ -597,7 +633,7 @@
           if (dataInicio && dia < dataInicio) matchData = false;
           if (dataFim && dia > dataFim) matchData = false;
         }
-        return matchBusca && matchTipo && matchStatus && matchData;
+        return matchBusca && matchTipo && matchStatus && matchData && matchProduto;
       });
 
       if (filtrados.length === 0) {
@@ -616,15 +652,15 @@
         const badgeStatus = p.fechado
           ? '<span class="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Fechado</span>'
           : '<span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[10px] font-bold">Em aberto</span>';
-        const un = p.tipoEmbalagem === 'caixas' ? 'cx' : 'pçs';
+        const un = p.tipoEmbalagem === 'caixas' ? 'cx' : (p.tipoEmbalagem === 'kg' ? 'kg' : 'pçs');
         const entrega = p.dataEntrega ? formatarData(p.dataEntrega) : '-';
         const idSeguro = esc(p.id);
 
         html += `
           <tr class="hover:bg-slate-50">
             <td class="p-2.5">
-              <div class="font-bold text-gray-800"><span class="text-amber-700">${fmtNum(p.numero)}</span> ${esc(p.fantasia || p.razao)}</div>
-              <div class="text-[10px] text-gray-400">${dataCriacao}</div>
+              <div class="font-bold text-gray-800">${esc(p.fantasia || p.razao)}</div>
+              <div class="text-[10px] text-gray-400">${dataCriacao} · ${esc(p.produto)}</div>
             </td>
             <td class="p-2.5">${badgeTipo}</td>
             <td class="p-2.5">${esc(p.qtdInput)} ${un}</td>
@@ -634,7 +670,6 @@
             <td class="p-2.5">${badgeStatus}</td>
             <td class="p-2.5 text-center space-x-1 whitespace-nowrap">
               ${p.fechado ? '' : `<button onclick="editarPedido('${idSeguro}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px]">✏️ Editar</button>`}
-              ${p.fechado ? '' : `<button onclick="fecharPedido('${idSeguro}')" class="bg-slate-800 hover:bg-slate-900 text-white px-2 py-1 rounded text-[10px]">✅ Fechar</button>`}
               <button onclick="copiarPedidoZap('${idSeguro}')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px]">📋 Copiar</button>
               <button onclick="excluirPedido('${idSeguro}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px]">🗑️</button>
             </td>
@@ -646,7 +681,7 @@
       $('rodapeHistorico').innerText = `${filtrados.length} pedido(s) | Comissão no filtro: ${brl(totalFiltrado)}`;
     }
 
-    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda', 'filtroStatus'].forEach(id => {
+    ['filtroBusca', 'filtroDataInicio', 'filtroDataFim', 'filtroTipoVenda', 'filtroStatus', 'filtroProduto'].forEach(id => {
       $(id).addEventListener('input', renderizarHistorico);
       $(id).addEventListener('change', renderizarHistorico);
     });
@@ -675,12 +710,13 @@
       if (precoPraticado <= 0) { alert('Informe o Preço Praticado.'); $('precoPraticado').focus(); return; }
 
       const res = calcularDadosAtuais();
+      if (res.tipoVenda === 'Venda Normal' && precoPraticado < res.prod.piso) {
+        if (!confirm(`O preço (${brl(precoPraticado)}/kg) está ABAIXO do piso de tabela (${brl(res.prod.piso)}/kg). A comissão ficará negativa. Salvar mesmo assim?`)) return;
+      }
       const original = editandoId ? todosPedidos.find(x => String(x.id) === String(editandoId)) : null;
 
       const pedido = {
         id: editandoId || Date.now(),
-        numero: original ? original.numero : proximoNumero(),
-        numPedido: original ? original.numero : proximoNumero(),
         dataHora: original ? original.dataHora : new Date().toISOString(),
         razao: $('razao').value.trim(),
         fantasia: $('fantasia').value.trim(),
@@ -693,6 +729,7 @@
         nf: $('nf').value,
         tipoVenda: res.tipoVenda,
         tipoEmbalagem: res.tipo,
+        produto: $('produto').value,
         qtdInput,
         precoPraticado,
         comissao: res.comissaoVal
@@ -729,13 +766,13 @@
 
       let total = 0;
       let html = '';
-      let texto = `📊 *FECHAMENTO ESTIMADO - MUÇARELA* 📊\n\n`;
+      let texto = `📊 *FECHAMENTO ESTIMADO* 📊\n\n`;
 
       pendentes.forEach((p, i) => {
         total += p.comissao;
         const cor = p.comissao >= 0 ? 'text-green-600' : 'text-red-600';
-        html += `<div class="flex justify-between border-b pb-1"><span>${fmtNum(p.numero)} ${esc(p.fantasia)} (${new Date(p.dataHora).toLocaleDateString('pt-BR')})</span> <span class="font-bold ${cor}">${brl(p.comissao)}</span></div>`;
-        texto += `${fmtNum(p.numero)} ${p.fantasia} (${new Date(p.dataHora).toLocaleDateString('pt-BR')}) | Com. Est.: ${brl(p.comissao)}\n`;
+        html += `<div class="flex justify-between border-b pb-1"><span>${i + 1}. ${esc(p.fantasia)} - ${esc(p.produto)} (${new Date(p.dataHora).toLocaleDateString('pt-BR')})</span> <span class="font-bold ${cor}">${brl(p.comissao)}</span></div>`;
+        texto += `${i + 1}. ${p.fantasia} - ${p.produto} (${new Date(p.dataHora).toLocaleDateString('pt-BR')}) | Com. Est.: ${brl(p.comissao)}\n`;
       });
 
       texto += `\n💰 *TOTAL LÍQUIDO A RECEBER:* ${brl(total)}`;
@@ -773,9 +810,9 @@
       }
     });
 
-    if (!MOSTRAR_PEDIDO_PROPRIO) $('isLucas').closest('div').style.display = 'none';
+    popularProdutos();
+    limparFormulario();
     carregarDadosPlanilha();
-    atualizarTelaCalculo();
   </script>
 </body>
 </html>
